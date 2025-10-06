@@ -28,6 +28,7 @@ GMAIL_EMAIL = os.getenv("GMAIL_EMAIL")
 GMAIL_APP_PASSWORD = os.getenv("GMAIL_APP_PASSWORD")
 GOOGLE_SHEETS_CREDS_FILE = os.getenv("GOOGLE_SHEETS_CREDENTIALS_FILE", "credentials.json")
 GOOGLE_SHEET_NAME = os.getenv("GOOGLE_SHEET_NAME", "Resume Screening Results")
+JOB_REQUIREMENTS_FILE = os.getenv("JOB_REQUIREMENTS_FILE", "job_requirements.json")
 
 if not GOOGLE_API_KEY:
     raise ValueError("GOOGLE_API_KEY not found in .env file")
@@ -42,6 +43,22 @@ app = FastAPI(title="AI-Powered Resume Screening")
 
 
 # --- Helper Functions ---
+def load_job_requirements() -> dict:
+    """Loads job requirements from the JSON file."""
+    try:
+        with open(JOB_REQUIREMENTS_FILE, 'r') as f:
+            return json.load(f)
+    except FileNotFoundError:
+        raise HTTPException(
+            status_code=500, 
+            detail=f"Job requirements file not found: {JOB_REQUIREMENTS_FILE}. Please create the file."
+        )
+    except json.JSONDecodeError as e:
+        raise HTTPException(
+            status_code=500, 
+            detail=f"Invalid JSON in job requirements file: {e}"
+        )
+
 def extract_text_from_pdf(file_bytes: bytes) -> str:
     """Extracts text from a PDF file's bytes."""
     try:
@@ -227,8 +244,17 @@ async def evaluate_candidate(candidate_data: dict) -> dict:
     genai.configure(api_key=GOOGLE_API_KEY)
     model = genai.GenerativeModel('gemini-2.5-pro')
     
+    # Load job requirements from file
+    job_reqs = load_job_requirements()
+    
     # The candidate data is passed in the prompt context
     candidate_context = json.dumps(candidate_data, indent=2)
+    job_context = json.dumps({
+        "job_title": job_reqs.get("job_title", "Software Developer"),
+        "requiredSkills": job_reqs.get("required_skills", []) + job_reqs.get("preferred_skills", []),
+        "requiredExperience": f"{job_reqs.get('minimum_experience_years', 2)} years",
+        "requiredEducation": job_reqs.get("required_education", "Bachelor's Degree")
+    }, indent=2)
 
     prompt = f"""
     You are an AI Resume Evaluation Agent.
@@ -239,14 +265,7 @@ async def evaluate_candidate(candidate_data: dict) -> dict:
     {candidate_context}
 
     These are the job requirements:
-    {{
-      "requiredSkills": [
-        "Python", "Machine Learning", "Data Analysis", "SQL", "JavaScript",
-        "React.js", "HTML", "CSS", "Node.js", "Git", "Cloud Computing", "REST APIs"
-      ],
-      "requiredExperience": "2 years",
-      "requiredEducation": "Bachelor’s Degree in Computer Science or equivalent"
-    }}
+    {job_context}
 
     Now, produce the final evaluation in this exact format:
     {{
@@ -388,3 +407,4 @@ Hiring Team"""
 # 2. Add your Google API key to it: GOOGLE_API_KEY="your_key_here"
 # 3. Install requirements: pip install -r requirements.txt
 # 4. Run uvicorn: uvicorn app:app --reload
+
