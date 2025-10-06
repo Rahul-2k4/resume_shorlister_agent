@@ -9,6 +9,9 @@ import PyPDF2
 import io
 from dotenv import load_dotenv
 import google.generativeai as genai
+import gspread
+from oauth2client.service_account import ServiceAccountCredentials
+from datetime import datetime
 
 # Load environment variables from .env file
 load_dotenv()
@@ -18,9 +21,13 @@ load_dotenv()
 # GOOGLE_API_KEY="your_google_api_key_here"
 # GMAIL_EMAIL="your_email@gmail.com"
 # GMAIL_APP_PASSWORD="your_16_char_app_password"
+# GOOGLE_SHEETS_CREDENTIALS_FILE="path/to/credentials.json"
+# GOOGLE_SHEET_NAME="Resume Screening Results"
 GOOGLE_API_KEY = os.getenv("GOOGLE_API_KEY")
 GMAIL_EMAIL = os.getenv("GMAIL_EMAIL")
 GMAIL_APP_PASSWORD = os.getenv("GMAIL_APP_PASSWORD")
+GOOGLE_SHEETS_CREDS_FILE = os.getenv("GOOGLE_SHEETS_CREDENTIALS_FILE", "credentials.json")
+GOOGLE_SHEET_NAME = os.getenv("GOOGLE_SHEET_NAME", "Resume Screening Results")
 
 if not GOOGLE_API_KEY:
     raise ValueError("GOOGLE_API_KEY not found in .env file")
@@ -111,6 +118,66 @@ def send_email(to_email: str, subject: str, body: str) -> bool:
     print("   - Corporate network restrictions")
     print("   - ISP blocking SMTP ports")
     return False
+
+
+def save_to_google_sheets(candidate_data: dict) -> bool:
+    """
+    Saves candidate data to Google Sheets for candidates who cleared the final score requirement.
+    Returns True if successful, False otherwise.
+    """
+    try:
+        # Define the scope
+        scope = ['https://spreadsheets.google.com/feeds',
+                 'https://www.googleapis.com/auth/drive']
+        
+        # Add credentials
+        creds = ServiceAccountCredentials.from_json_keyfile_name(GOOGLE_SHEETS_CREDS_FILE, scope)
+        client = gspread.authorize(creds)
+        
+        # Open the Google Sheet (create if doesn't exist)
+        try:
+            sheet = client.open(GOOGLE_SHEET_NAME).sheet1
+        except gspread.SpreadsheetNotFound:
+            print(f"⚠️ Spreadsheet '{GOOGLE_SHEET_NAME}' not found. Please create it first or share it with the service account.")
+            return False
+        
+        # Check if headers exist, if not add them
+        if sheet.row_count == 0 or sheet.row_values(1) == []:
+            headers = [
+                'Timestamp', 'Name', 'Email', 'Final Score', 
+                'Skill Score', 'Experience Score', 'Education Score',
+                'Experience', 'Education', 'Candidate Skills', 'Feedback'
+            ]
+            sheet.insert_row(headers, 1)
+        
+        # Prepare row data
+        row = [
+            datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
+            candidate_data.get('name', 'N/A'),
+            candidate_data.get('email', 'N/A'),
+            candidate_data.get('finalScore', 0),
+            candidate_data.get('skillScore', 0),
+            candidate_data.get('experienceScore', 0),
+            candidate_data.get('educationScore', 0),
+            candidate_data.get('experience', 'N/A'),
+            candidate_data.get('education', 'N/A'),
+            ', '.join(candidate_data.get('candidateSkills', [])) if isinstance(candidate_data.get('candidateSkills'), list) else candidate_data.get('candidateSkills', 'N/A'),
+            candidate_data.get('feedback', 'N/A')
+        ]
+        
+        # Append the row
+        sheet.append_row(row)
+        
+        print(f"✅ Candidate data saved to Google Sheets: {candidate_data.get('name')}")
+        return True
+        
+    except FileNotFoundError:
+        print(f"❌ Credentials file not found: {GOOGLE_SHEETS_CREDS_FILE}")
+        print("   Please download your Google Service Account credentials JSON file")
+        return False
+    except Exception as e:
+        print(f"❌ Failed to save to Google Sheets: {e}")
+        return False
 
 
 # --- AI Interaction Functions ---
@@ -307,6 +374,12 @@ Hiring Team"""
     # Add email status to response
     final_evaluation['email_sent'] = email_sent
     final_evaluation['email_recipient'] = recipient_email if email_sent else None
+    
+    # --- Workflow Step 5: Save to Google Sheets if score >= 50 ---
+    sheets_saved = False
+    if final_score >= 50:
+        sheets_saved = save_to_google_sheets(final_evaluation)
+        final_evaluation['saved_to_sheets'] = sheets_saved
     
     return final_evaluation
 
