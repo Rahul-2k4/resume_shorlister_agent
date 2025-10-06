@@ -130,6 +130,7 @@ async def extract_structured_data(resume_text: str) -> dict:
     Return a clean JSON object in this format:
     {{
       "name": "Exact name from resume",
+      "email": "candidate's email address",
       "candidateSkills": ["list", "of", "skills"],
       "experience": "Number of years or range",
       "education": "Highest degree or education"
@@ -137,11 +138,12 @@ async def extract_structured_data(resume_text: str) -> dict:
 
     Instructions:
     1. Always use the exact name as written in the resume.
-    2. Extract all skills mentioned in the resume and list them under "candidateSkills".
-    3. Estimate experience from the text (e.g., "3 years", "6+ years").
-    4. Identify the highest education level or degree mentioned.
-    5. **Do not wrap the JSON in markdown or code blocks. Return only the JSON object itself.**
-    6. If a field is missing, use "Not found" or an empty array.
+    2. Extract the email address from the resume (e.g., "john.doe@gmail.com", "candidate@example.com").
+    3. Extract all skills mentioned in the resume and list them under "candidateSkills".
+    4. Estimate experience from the text (e.g., "3 years", "6+ years").
+    5. Identify the highest education level or degree mentioned.
+    6. **Do not wrap the JSON in markdown or code blocks. Return only the JSON object itself.**
+    7. If a field is missing, use "Not found" or an empty array.
     """
     try:
         response = await model.generate_content_async(prompt)
@@ -182,6 +184,7 @@ async def evaluate_candidate(candidate_data: dict) -> dict:
     Now, produce the final evaluation in this exact format:
     {{
       "name": "Full Name of Candidate",
+      "email": "candidate's email address",
       "candidateSkills": ["skills from candidate"],
       "requiredSkills": ["skills required for job"],
       "matchedSkills": ["skills that overlap"],
@@ -242,14 +245,18 @@ async def upload_resume(file: UploadFile = File(...)):
     
     # --- Workflow Step 4: Send email notification based on score ---
     candidate_name = final_evaluation.get('name', 'Candidate')
+    candidate_email = final_evaluation.get('email', 'Not found')
     final_score = final_evaluation.get('finalScore', 0)
     skill_score = final_evaluation.get('skillScore', 0)
     experience_score = final_evaluation.get('experienceScore', 0)
     education_score = final_evaluation.get('educationScore', 0)
     feedback = final_evaluation.get('feedback', 'No feedback available')
     
-    # Email recipient (you can modify this to send to the candidate or HR)
-    recipient_email = "rahultripathi2k4151@gmail.com"
+    # Email recipient - send to candidate if email found, otherwise to HR
+    if candidate_email and candidate_email != 'Not found' and '@' in candidate_email:
+        recipient_email = candidate_email  # Send to candidate
+    else:
+        recipient_email = "rahultripathi2k4151@gmail.com"  # Send to HR if no candidate email
     
     if final_score >= 50:
         # Send offer/shortlist email
