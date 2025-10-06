@@ -253,19 +253,22 @@ border: 1px solid rgba(255,255,255,0.1);">
             </button>
           </div>
           <div id="fileMeta" class="mt-4 hidden text-sm text-gray-300">
-            <div class="flex items-center justify-between">
-              <div class="flex items-center gap-3">
-                <i data-lucide="file" class="w-4 h-4"></i>
-                <span id="fileName">filename.pdf</span>
-                <span class="text-gray-500">•</span>
-                <span id="fileType">application/pdf</span>
-                <span class="text-gray-500">•</span>
-                <span id="fileSize">120 KB</span>
-              </div>
-              <button id="startProcessBtn" class="text-xs rounded px-3 py-1.5 hover:-translate-y-0.5 transition"
-                      style="background: rgba(59,130,246,0.18);
-border: 1px solid rgba(59,130,246,0.35);">
-                Start processing
+            <div class="flex items-center gap-3 mb-4">
+              <i data-lucide="file" class="w-4 h-4"></i>
+              <span id="fileName">filename.pdf</span>
+              <span class="text-gray-500">•</span>
+              <span id="fileType">application/pdf</span>
+              <span class="text-gray-500">•</span>
+              <span id="fileSize">120 KB</span>
+            </div>
+            <div class="flex gap-4">
+              <button id="startProcessBtn" class="text-lg font-bold rounded-lg px-8 py-4 hover:-translate-y-1 transition shadow-lg"
+                      style="background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%); color: white; border: 2px solid #60a5fa;">
+                🚀 START PROCESSING
+              </button>
+              <button id="debugBtn" class="text-lg font-bold rounded-lg px-8 py-4 hover:-translate-y-1 transition shadow-lg"
+                      style="background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); color: white; border: 2px solid #fbbf24;" title="Test backend connection">
+                🔍 DEBUG TEST
               </button>
             </div>
           </div>
@@ -843,14 +846,7 @@ border: 1px solid rgba(59,130,246,0.35);">
       canceled: false,
       progress: 0,
       currentStepIndex: -1,
-      steps: [
-        { id: 'upload', label: 'Upload', type: 'INFO', duration: 1500 },
-        { id: 'extract', label: 'Text Extraction', type: 'AI', duration: 2500 },
-        { id: 'structure', label: 'AI Structuring', type: 'AI', duration: 2500 },
-        { id: 'score', label: 'Scoring', type: 'AI', duration: 2000 },
-        { id: 'email', label: 'Email', type: 'Email', duration: 1500 },
-        { id: 'sheets', label: 'Google Sheets', type: 'Sheets', duration: 1800 }
-      ],
+      steps: [],
       logs: [],
       candidate: {
         name: 'John Doe',
@@ -870,6 +866,7 @@ border: 1px solid rgba(59,130,246,0.35);">
     const fileTypeEl = document.getElementById('fileType');
     const fileSizeEl = document.getElementById('fileSize');
     const startProcessBtn = document.getElementById('startProcessBtn');
+    console.log('🔍 startProcessBtn element:', startProcessBtn);
     const progressBar = document.getElementById('progressBar');
     const progressLabel = document.getElementById('progressLabel');
     const pauseBtn = document.getElementById('pauseBtn');
@@ -1058,8 +1055,10 @@ border: 1px solid rgba(59,130,246,0.35);">
     let selectedFile = null;
 
     function setSelectedFile(file) {
+      console.log('📂 setSelectedFile called with:', file);
       if (!file) return;
       selectedFile = file;
+      console.log('✅ selectedFile set to:', selectedFile);
       fileNameEl.textContent = file.name;
       fileTypeEl.textContent = file.type || 'application/octet-stream';
       const sizeKB = (file.size / 1024).toFixed(1);
@@ -1073,7 +1072,9 @@ border: 1px solid rgba(59,130,246,0.35);">
     navUploadBtn.addEventListener('click', () => fileInput.click());
 
     fileInput.addEventListener('change', (e) => {
+      console.log('📎 File input changed:', e.target.files);
       const file = e.target.files[0];
+      console.log('📄 Selected file:', file);
       if (!file) return;
       if (file.size > 5 * 1024 * 1024) {
         showToast('File exceeds 5MB limit.', 'danger');
@@ -1105,10 +1106,20 @@ border: 1px solid rgba(59,130,246,0.35);">
       setSelectedFile(file);
     });
 
-    // Workflow simulation
-    function sleep(ms) { return new Promise(res => setTimeout(res, ms)); }
+async function runWorkflow() {
+      console.log('🔍 BEFORE CHECK - selectedFile value:', selectedFile);
+      alert('runWorkflow called! File: ' + (selectedFile ? selectedFile.name : 'NONE'));
+      console.log('🚀 runWorkflow called');
+      console.log('📁 selectedFile:', selectedFile);
+      
+      if (!selectedFile) {
+        showToast('Please select a file first.', 'warning');
+        console.warn('⚠️ No file selected');
+        return;
+      }
 
-    async function runWorkflow() {
+      console.log('✅ Starting workflow with file:', selectedFile.name);
+      
       state.uploading = true;
       state.canceled = false;
       state.paused = false;
@@ -1118,53 +1129,132 @@ border: 1px solid rgba(59,130,246,0.35);">
       updateProgressDisplay(0);
       pauseBtn.disabled = false;
       cancelBtn.disabled = false;
+      
       // Reset timeline to pending
       state.steps.forEach(s => setStepStatus(s.id, 'Pending'));
 
-      addActivity('INFO', 'Processing started', selectedFile ? selectedFile.name : 'No filename');
-      for (let i = 0; i < state.steps.length; i++) {
-        if (state.canceled) break;
-        const step = state.steps[i];
-        state.currentStepIndex = i;
-        setStepStatus(step.id, 'Running');
-        addActivity(step.type, `Step: ${step.label}`, 'Running');
+      addActivity('INFO', 'Processing started', selectedFile.name);
 
-        let elapsed = 0;
-        const tick = 100;
-        while (elapsed < step.duration) {
-          if (state.canceled) break;
-          while (state.paused) {
-            await sleep(200);
-          }
-          await sleep(tick);
-          elapsed += tick;
-          const base = (i / state.steps.length) * 100;
-          const delta = (elapsed / step.duration) * (100 / state.steps.length);
-          updateProgressDisplay(base + delta);
-        }
-        if (state.canceled) {
-          setStepStatus(step.id, 'Canceled');
-          addActivity('INFO', `Step canceled: ${step.label}`);
-          break;
-        }
-        setStepStatus(step.id, 'Done');
-        addActivity('SUCCESS', `Step complete: ${step.label}`);
-      }
+      // Step 1: Upload
+      setStepStatus('upload', 'Running');
+      addActivity('INFO', 'Step: Upload Resume', 'Running');
+      updateProgressDisplay(10);
 
-      if (!state.canceled) {
-        state.progress = 100;
+      const formData = new FormData();
+      formData.append('file', selectedFile);
+
+      console.log('📤 Sending request to:', `${API_BASE_URL}/upload_resume`);
+      console.log('📋 FormData file:', selectedFile.name, selectedFile.type, selectedFile.size);
+
+      try {
+        // Step 2: Extract
+        setStepStatus('upload', 'Done');
+        setStepStatus('extract', 'Running');
+        addActivity('SUCCESS', 'Step complete: Upload Resume');
+        addActivity('AI', 'Step: Extract Data', 'Running');
+        updateProgressDisplay(30);
+
+        console.log('🌐 Fetching...');
+        const response = await fetch(`${API_BASE_URL}/upload_resume`, {
+          method: 'POST',
+          body: formData,
+        });
+
+        console.log('📥 Response status:', response.status, response.statusText);
+
+        if (!response.ok) {
+          const errorData = await response.json().catch(() => ({ detail: 'Upload failed' }));
+          console.error('❌ Error response:', errorData);
+          throw new Error(errorData.detail || 'File upload failed');
+        }
+
+        const results = await response.json();
+        console.log('✅ Backend response:', results);
+
+        // Step 3: Score
+        setStepStatus('extract', 'Done');
+        setStepStatus('score', 'Running');
+        addActivity('SUCCESS', 'Step complete: Extract Data');
+        addActivity('AI', 'Step: Calculate Score', 'Running');
+        updateProgressDisplay(60);
+
+        // Update state with results
+        state.candidate.name = results.name || 'Unknown';
+        state.candidate.email = results.email || 'Not provided';
+        state.candidate.scores.tech = results.skillScore || 0;
+        state.candidate.scores.exp = results.experienceScore || 0;
+        state.candidate.scores.edu = results.educationScore || 0;
+        state.candidate.final = results.finalScore || 0;
+        
+        // Get passing score from requirements
+        const passingScore = parseInt(reqPass.textContent) || 50;
+        state.candidate.pass = state.candidate.final >= passingScore;
+
+        // Step 4: Email
+        setStepStatus('score', 'Done');
+        setStepStatus('email', 'Running');
+        addActivity('SUCCESS', 'Step complete: Calculate Score');
+        addActivity('Email', 'Step: Send Notification', 'Running');
+        updateProgressDisplay(80);
+
+        await new Promise(res => setTimeout(res, 500)); // Small delay for UI update
+
+        // Step 5: Sheets
+        setStepStatus('email', 'Done');
+        setStepStatus('sheets', 'Running');
+        addActivity('SUCCESS', 'Step complete: Send Notification');
+        if (results.email_sent) {
+          addActivity('Email', 'Email sent successfully', results.email_recipient || state.candidate.email);
+        } else {
+          addActivity('ERROR', 'Email sending failed');
+        }
+        addActivity('Sheets', 'Step: Save to Sheets', 'Running');
+        updateProgressDisplay(90);
+
+        await new Promise(res => setTimeout(res, 500));
+
+        setStepStatus('sheets', 'Done');
+        addActivity('SUCCESS', 'Step complete: Save to Sheets');
+        if (results.saved_to_sheets) {
+          addActivity('Sheets', 'Data saved to Google Sheets successfully');
+        }
         updateProgressDisplay(100);
-        addActivity('SUCCESS', 'Processing completed');
-        finalizeCandidate();
-      } else {
-        addActivity('ERROR', 'Processing canceled');
-      }
 
-      pauseBtn.disabled = true;
-      cancelBtn.disabled = true;
-      // Reset pause button label/icon
-      pauseBtn.innerHTML = `<i data-lucide="pause" class="w-4 h-4"></i> Pause`;
-      lucide.createIcons({ attrs: { 'stroke-width': 1.5 } });
+        // Update UI
+        candNameEl.textContent = state.candidate.name;
+        candEmailEl.textContent = state.candidate.email;
+        finalScoreBadge.textContent = `Final Score: ${state.candidate.final} — ${state.candidate.pass ? 'PASS' : 'REVIEW'}`;
+        finalScoreBadge.style.background = state.candidate.pass ? 'rgba(16,185,129,0.12)' : 'rgba(234,179,8,0.12)';
+        finalScoreBadge.style.border = state.candidate.pass ? '1px solid rgba(16,185,129,0.35)' : '1px solid rgba(234,179,8,0.35)';
+        finalScoreBadge.style.color = state.candidate.pass ? '#A7F3D0' : '#FDE68A';
+        decisionText.textContent = state.candidate.pass
+          ? 'Candidate meets threshold. Recommended for interview scheduling.'
+          : 'Borderline score. Recommend manual review before proceeding.';
+
+        updateCharts();
+
+        showToast('Processing completed successfully!', 'success');
+        addActivity('SUCCESS', 'Processing completed', `Score: ${state.candidate.final}`);
+
+      } catch (error) {
+        console.error('Workflow error:', error);
+        showToast(error.message, 'danger');
+        addActivity('ERROR', 'Processing failed', error.message);
+        
+        // Mark current step as error
+        state.steps.forEach(s => {
+          const badge = document.querySelector(`[data-badge="${s.id}"]`);
+          if (badge && badge.textContent === 'Running') {
+            setStepStatus(s.id, 'Error');
+          }
+        });
+      } finally {
+        state.uploading = false;
+        pauseBtn.disabled = true;
+        cancelBtn.disabled = true;
+        pauseBtn.innerHTML = `<i data-lucide="pause" class="w-4 h-4"></i> Pause`;
+        lucide.createIcons({ attrs: { 'stroke-width': 1.5 } });
+      }
     }
 
     function finalizeCandidate() {
@@ -1211,12 +1301,59 @@ border: 1px solid rgba(59,130,246,0.35);">
     });
 
     // Start
-    startProcessBtn.addEventListener('click', () => {
-      if (!selectedFile) {
-        showToast('Please choose a file first.', 'warning');
-        return;
+    console.log('🔗 Attaching click listener to startProcessBtn:', startProcessBtn);
+    console.log('🔗 runWorkflow function:', typeof runWorkflow);
+    startProcessBtn.addEventListener('click', runWorkflow);
+    console.log('✅ Event listener attached successfully');
+
+    // Debug button - test backend connection
+    const debugBtn = document.getElementById('debugBtn');
+    debugBtn.addEventListener('click', async () => {
+      console.log('🐛 Debug button clicked');
+      addActivity('INFO', 'Testing backend connection...');
+      
+      try {
+        // Test 1: Root endpoint
+        console.log('Testing GET / ...');
+        const rootResponse = await fetch(`${API_BASE_URL}/`);
+        const rootData = await rootResponse.json();
+        console.log('✅ Backend root OK:', rootData);
+        addActivity('SUCCESS', 'Backend is reachable', JSON.stringify(rootData));
+        
+        // Test 2: Check if file is selected
+        if (!selectedFile) {
+          showToast('⚠️ No file selected. Upload a file first!', 'warning');
+          addActivity('WARNING', 'No file selected for upload test');
+          return;
+        }
+        
+        // Test 3: Try uploading
+        console.log('Testing POST /upload_resume with file:', selectedFile.name);
+        const formData = new FormData();
+        formData.append('file', selectedFile);
+        
+        const uploadResponse = await fetch(`${API_BASE_URL}/upload_resume`, {
+          method: 'POST',
+          body: formData,
+        });
+        
+        console.log('📥 Upload response status:', uploadResponse.status);
+        
+        if (!uploadResponse.ok) {
+          const errorData = await uploadResponse.json().catch(() => ({ detail: 'Upload failed' }));
+          throw new Error(JSON.stringify(errorData));
+        }
+        
+        const uploadData = await uploadResponse.json();
+        console.log('✅ Upload successful:', uploadData);
+        showToast('🎉 Backend test passed! Upload works!', 'success');
+        addActivity('SUCCESS', 'Upload test passed', `Score: ${uploadData.finalScore}`);
+        
+      } catch (error) {
+        console.error('❌ Debug test failed:', error);
+        showToast(`Debug failed: ${error.message}`, 'danger');
+        addActivity('ERROR', 'Backend test failed', error.message);
       }
-      runWorkflow();
     });
 
     // Keyboard shortcut

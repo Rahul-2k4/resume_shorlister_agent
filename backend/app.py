@@ -52,7 +52,17 @@ if not GMAIL_EMAIL or not GMAIL_APP_PASSWORD:
 # genai.configure(api_key=GOOGLE_API_KEY)
 
 # --- FastAPI App Initialization ---
+from fastapi.middleware.cors import CORSMiddleware
 app = FastAPI(title="AI-Powered Resume Screening")
+
+# --- CORS Configuration ---
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],  # Allow all origins
+    allow_credentials=True,
+    allow_methods=["*"],  # Allow all methods
+    allow_headers=["*"],  # Allow all headers
+)
 
 
 # --- Helper Functions ---
