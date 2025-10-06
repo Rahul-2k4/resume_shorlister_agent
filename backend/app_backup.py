@@ -1,77 +1,68 @@
+# Backup copy of the FastAPI application kept for reference.
+# This version mirrors the current implementation but is retained separately
+# so changes can be compared easily when experimenting.
+
 import os
 import json
 import smtplib
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
-from fastapi import FastAPI, File, UploadFile, HTTPException
-from fastapi.middleware.cors import CORSMiddleware
+from pathlib import Path
 from typing import Dict
+from datetime import datetime
+
+from fastapi import FastAPI, File, UploadFile, HTTPException
 import PyPDF2
 import io
 from dotenv import load_dotenv
 import google.generativeai as genai
 import gspread
 from oauth2client.service_account import ServiceAccountCredentials
-from datetime import datetime
 
-# Load environment variables from .env file
-load_dotenv()
+BASE_DIR = Path(__file__).resolve().parent
+PROJECT_ROOT = BASE_DIR.parent
+CONFIG_DIR = BASE_DIR / "config"
 
-# --- Configuration ---
-# Make sure to create a .env file and add your credentials
-# GOOGLE_API_KEY="your_google_api_key_here"
-# GMAIL_EMAIL="your_email@gmail.com"
-# GMAIL_APP_PASSWORD="your_16_char_app_password"
-# GOOGLE_SHEETS_CREDENTIALS_FILE="path/to/credentials.json"
-# GOOGLE_SHEET_NAME="Resume Screening Results"
+load_dotenv(PROJECT_ROOT / ".env")
+
 GOOGLE_API_KEY = os.getenv("GOOGLE_API_KEY")
 GMAIL_EMAIL = os.getenv("GMAIL_EMAIL")
 GMAIL_APP_PASSWORD = os.getenv("GMAIL_APP_PASSWORD")
-GOOGLE_SHEETS_CREDS_FILE = os.getenv("GOOGLE_SHEETS_CREDENTIALS_FILE", "credentials.json")
+GOOGLE_SHEETS_CREDS_FILE = os.getenv(
+    "GOOGLE_SHEETS_CREDENTIALS_FILE",
+    str(CONFIG_DIR / "credentials.json"),
+)
 GOOGLE_SHEET_NAME = os.getenv("GOOGLE_SHEET_NAME", "Resume Screening Results")
-JOB_REQUIREMENTS_FILE = os.getenv("JOB_REQUIREMENTS_FILE", "job_requirements.json")
+JOB_REQUIREMENTS_FILE = os.getenv(
+    "JOB_REQUIREMENTS_FILE",
+    str(CONFIG_DIR / "job_requirements.json"),
+)
 
 if not GOOGLE_API_KEY:
     raise ValueError("GOOGLE_API_KEY not found in .env file")
 if not GMAIL_EMAIL or not GMAIL_APP_PASSWORD:
     print("⚠️ Warning: Gmail credentials not configured. Email notifications will be disabled.")
 
-# Don't configure at startup - do it when needed to avoid hanging
-# genai.configure(api_key=GOOGLE_API_KEY)
-
-# --- FastAPI App Initialization ---
-app = FastAPI(title="AI-Powered Resume Screening")
-
-# --- CORS Middleware ---
-# This is necessary to allow the frontend to communicate with the backend
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["*"],  # Allows all origins
-    allow_credentials=True,
-    allow_methods=["*"],  # Allows all methods
-    allow_headers=["*"],  # Allows all headers
-)
+app = FastAPI(title="AI-Powered Resume Screening (Backup)")
 
 
-# --- Helper Functions ---
 def load_job_requirements() -> dict:
-    """Loads job requirements from the JSON file."""
     try:
         with open(JOB_REQUIREMENTS_FILE, 'r') as f:
             return json.load(f)
     except FileNotFoundError:
         raise HTTPException(
-            status_code=500, 
-            detail=f"Job requirements file not found: {JOB_REQUIREMENTS_FILE}. Please create the file."
+            status_code=500,
+            detail=f"Job requirements file not found: {JOB_REQUIREMENTS_FILE}. Please create the file.",
         )
     except json.JSONDecodeError as e:
         raise HTTPException(
-            status_code=500, 
-            detail=f"Invalid JSON in job requirements file: {e}"
+            status_code=500,
+            detail=f"Invalid JSON in job requirements file: {e}",
         )
 
+
 def extract_text_from_pdf(file_bytes: bytes) -> str:
-    """Extracts text from a PDF file's bytes."""
     try:
         pdf_reader = PyPDF2.PdfReader(io.BytesIO(file_bytes))
         text = ""
@@ -81,10 +72,9 @@ def extract_text_from_pdf(file_bytes: bytes) -> str:
     except Exception as e:
         raise HTTPException(status_code=400, detail=f"Failed to extract text from PDF: {e}")
 
+
 def clean_json_response(response_text: str) -> dict:
-    """Cleans and parses a JSON string from an LLM response."""
     try:
-        # Remove markdown backticks and "json" identifier
         clean_text = response_text.replace("```json", "").replace("```", "").strip()
         return json.loads(clean_text)
     except json.JSONDecodeError:
@@ -92,54 +82,44 @@ def clean_json_response(response_text: str) -> dict:
 
 
 def send_email(to_email: str, subject: str, body: str) -> bool:
-    """
-    Sends an email using Gmail SMTP.
-    Returns True if successful, False otherwise.
-    Tries multiple ports and methods for better compatibility.
-    """
     if not GMAIL_EMAIL or not GMAIL_APP_PASSWORD:
         print("⚠️ Email not sent: Gmail credentials not configured")
         return False
-    
-    # Create message
+
     msg = MIMEMultipart()
     msg['From'] = GMAIL_EMAIL
     msg['To'] = to_email
     msg['Subject'] = subject
     msg.attach(MIMEText(body, 'plain'))
     text = msg.as_string()
-    
-    # Try different SMTP configurations
+
     smtp_configs = [
-        # (host, port, use_ssl, description)
         ('smtp.gmail.com', 587, False, 'TLS on port 587'),
         ('smtp.gmail.com', 465, True, 'SSL on port 465'),
         ('smtp.gmail.com', 25, False, 'TLS on port 25'),
     ]
-    
+
     for host, port, use_ssl, description in smtp_configs:
         try:
             print(f"🔄 Trying {description}...")
-            
+
             if use_ssl:
-                # Use SSL connection
                 server = smtplib.SMTP_SSL(host, port, timeout=10)
             else:
-                # Use TLS connection
                 server = smtplib.SMTP(host, port, timeout=10)
                 server.starttls()
-            
+
             server.login(GMAIL_EMAIL, GMAIL_APP_PASSWORD)
             server.sendmail(GMAIL_EMAIL, to_email, text)
             server.quit()
-            
+
             print(f"✅ Email sent successfully to {to_email} using {description}")
             return True
-            
+
         except Exception as e:
             print(f"❌ Failed with {description}: {e}")
             continue
-    
+
     print("❌ All SMTP methods failed. Possible causes:")
     print("   - Firewall blocking outgoing SMTP connections")
     print("   - Antivirus blocking email")
@@ -149,36 +129,27 @@ def send_email(to_email: str, subject: str, body: str) -> bool:
 
 
 def save_to_google_sheets(candidate_data: dict) -> bool:
-    """
-    Saves candidate data to Google Sheets for candidates who cleared the final score requirement.
-    Returns True if successful, False otherwise.
-    """
     try:
-        # Define the scope
         scope = ['https://spreadsheets.google.com/feeds',
                  'https://www.googleapis.com/auth/drive']
-        
-        # Add credentials
+
         creds = ServiceAccountCredentials.from_json_keyfile_name(GOOGLE_SHEETS_CREDS_FILE, scope)
         client = gspread.authorize(creds)
-        
-        # Open the Google Sheet (create if doesn't exist)
+
         try:
             sheet = client.open(GOOGLE_SHEET_NAME).sheet1
         except gspread.SpreadsheetNotFound:
             print(f"⚠️ Spreadsheet '{GOOGLE_SHEET_NAME}' not found. Please create it first or share it with the service account.")
             return False
-        
-        # Check if headers exist, if not add them
+
         if sheet.row_count == 0 or sheet.row_values(1) == []:
             headers = [
-                'Timestamp', 'Name', 'Email', 'Final Score', 
+                'Timestamp', 'Name', 'Email', 'Final Score',
                 'Skill Score', 'Experience Score', 'Education Score',
                 'Experience', 'Education', 'Candidate Skills', 'Feedback'
             ]
             sheet.insert_row(headers, 1)
-        
-        # Prepare row data
+
         row = [
             datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
             candidate_data.get('name', 'N/A'),
@@ -192,13 +163,12 @@ def save_to_google_sheets(candidate_data: dict) -> bool:
             ', '.join(candidate_data.get('candidateSkills', [])) if isinstance(candidate_data.get('candidateSkills'), list) else candidate_data.get('candidateSkills', 'N/A'),
             candidate_data.get('feedback', 'N/A')
         ]
-        
-        # Append the row
+
         sheet.append_row(row)
-        
+
         print(f"✅ Candidate data saved to Google Sheets: {candidate_data.get('name')}")
         return True
-        
+
     except FileNotFoundError:
         print(f"❌ Credentials file not found: {GOOGLE_SHEETS_CREDS_FILE}")
         print("   Please download your Google Service Account credentials JSON file")
@@ -208,12 +178,7 @@ def save_to_google_sheets(candidate_data: dict) -> bool:
         return False
 
 
-# --- AI Interaction Functions ---
 async def extract_structured_data(resume_text: str) -> dict:
-    """
-    Uses Gemini to extract structured information from the resume text.
-    (Corresponds to the first AI step in the n8n workflow)
-    """
     genai.configure(api_key=GOOGLE_API_KEY)
     model = genai.GenerativeModel('gemini-2.5-pro')
     prompt = f"""
@@ -248,17 +213,11 @@ async def extract_structured_data(resume_text: str) -> dict:
 
 
 async def evaluate_candidate(candidate_data: dict) -> dict:
-    """
-    Compares extracted resume data with job requirements to score the candidate.
-    (Corresponds to the second AI step in the n8n workflow)
-    """
     genai.configure(api_key=GOOGLE_API_KEY)
     model = genai.GenerativeModel('gemini-2.5-pro')
-    
-    # Load job requirements from file
+
     job_reqs = load_job_requirements()
-    
-    # The candidate data is passed in the prompt context
+
     candidate_context = json.dumps(candidate_data, indent=2)
     job_context = json.dumps({
         "job_title": job_reqs.get("job_title", "Software Developer"),
@@ -307,40 +266,32 @@ async def evaluate_candidate(candidate_data: dict) -> dict:
         raise HTTPException(status_code=500, detail=f"Gemini API error during evaluation: {e}")
 
 
-# --- API Endpoints ---
 @app.get("/")
 async def root():
     return {
-        "message": "AI-Powered Resume Screening API is running!",
+        "message": "AI-Powered Resume Screening API (Backup) is running!",
         "endpoints": {
             "upload": "POST /upload_resume",
             "docs": "/docs"
         }
     }
 
+
 @app.post("/upload_resume")
 async def upload_resume(file: UploadFile = File(...)):
-    """
-    This endpoint receives a resume, processes it through a multi-step AI workflow,
-    returns a final evaluation score and feedback, and sends an email notification.
-    """
     if file.content_type != 'application/pdf':
         raise HTTPException(status_code=400, detail="Invalid file type. Only PDF is supported.")
 
     file_bytes = await file.read()
 
-    # --- Workflow Step 1: Extract text from PDF ---
     resume_text = extract_text_from_pdf(file_bytes)
     if not resume_text:
         raise HTTPException(status_code=400, detail="Could not extract text from the PDF. The file might be empty or image-based.")
 
-    # --- Workflow Step 2: Extract structured data from text ---
     candidate_data = await extract_structured_data(resume_text)
 
-    # --- Workflow Step 3: Evaluate candidate against job requirements ---
     final_evaluation = await evaluate_candidate(candidate_data)
-    
-    # --- Workflow Step 4: Send email notification based on score ---
+
     candidate_name = final_evaluation.get('name', 'Candidate')
     candidate_email = final_evaluation.get('email', 'Not found')
     final_score = final_evaluation.get('finalScore', 0)
@@ -348,15 +299,13 @@ async def upload_resume(file: UploadFile = File(...)):
     experience_score = final_evaluation.get('experienceScore', 0)
     education_score = final_evaluation.get('educationScore', 0)
     feedback = final_evaluation.get('feedback', 'No feedback available')
-    
-    # Email recipient - send to candidate if email found, otherwise to HR
+
     if candidate_email and candidate_email != 'Not found' and '@' in candidate_email:
-        recipient_email = candidate_email  # Send to candidate
+        recipient_email = candidate_email
     else:
-        recipient_email = "rahultripathi2k4151@gmail.com"  # Send to HR if no candidate email
-    
+        recipient_email = "rahultripathi2k4151@gmail.com"
+
     if final_score >= 50:
-        # Send offer/shortlist email
         subject = "🎉 Congratulations - You're Moving Forward!"
         body = f"""Dear {candidate_name},
 
@@ -376,7 +325,6 @@ We'll be in touch soon with next steps!
 Best regards,
 Hiring Team"""
     else:
-        # Send rejection email
         subject = "Thank You for Your Application"
         body = f"""Dear {candidate_name},
 
@@ -397,25 +345,19 @@ We wish you the best in your job search!
 
 Best regards,
 Hiring Team"""
-    
-    # Send the email
+
     email_sent = send_email(recipient_email, subject, body)
-    
-    # Add email status to response
+
     final_evaluation['email_sent'] = email_sent
     final_evaluation['email_recipient'] = recipient_email if email_sent else None
-    
-    # --- Workflow Step 5: Save to Google Sheets if score >= 50 ---
+
     sheets_saved = False
     if final_score >= 50:
         sheets_saved = save_to_google_sheets(final_evaluation)
         final_evaluation['saved_to_sheets'] = sheets_saved
-    
+
     return final_evaluation
 
-# To run the app:
-# 1. Create a file named .env in the same directory.
-# 2. Add your Google API key to it: GOOGLE_API_KEY="your_key_here"
-# 3. Install requirements: pip install -r requirements.txt
-# 4. Run uvicorn: uvicorn app:app --reload
 
+# To run the app located in backend/:
+#   uvicorn backend.app_backup:app --reload

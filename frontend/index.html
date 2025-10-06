@@ -1,0 +1,1558 @@
+<!DOCTYPE html>
+<html lang="en">
+<head><meta charset="UTF-8" />
+<title>Resume Shortlister</title>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<script src="https://cdn.tailwindcss.com"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://unpkg.com/lucide@0.468.0/dist/umd/lucide.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+</head>
+<body id="top" class="bg-black text-white antialiased" style="font-family: Inter, ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto; width: 100vw; height: 100vh; overflow-x: hidden; margin: 0; padding: 0;">
+  <canvas id="shaderCanvas" style="position: fixed; inset: 0; width: 100vw; height: 100vh; z-index: -1; display: block;"></canvas>
+
+  <nav class="container mx-auto px-6 py-6 relative z-10">
+    <div class="flex items-center justify-between">
+      <a href="#top" class="flex items-center group">
+        <div class="h-8 w-8 rounded-md grid place-items-center text-indigo-300 ring-1 ring-white/15 shadow-sm transition"
+           style="background: rgba(255,255,255,0.06); backdrop-filter: blur(10px);
+-webkit-backdrop-filter: blur(10px);">
+          <span class="text-xs font-semibold tracking-tight" style="font-family: 'Plus Jakarta Sans', Inter, sans-serif;">R</span>
+        </div>
+        <span class="ml-3 text-xl font-semibold tracking-tight group-hover:opacity-90 transition"
+              style="font-family: 'Plus Jakarta Sans', Inter, sans-serif;">Resume Shortlister</span>
+      </a>
+      <div class="hidden md:flex items-center space-x-8 text-base text-gray-300">
+        <a href="#dashboard" class="hover:text-white transition-colors">Dashboard</a>
+        <a href="#workflow" class="hover:text-white transition-colors">Workflow</a>
+        <a href="#results" class="hover:text-white transition-colors">Results</a>
+        <a href="#requirements" class="hover:text-white transition-colors">Requirements</a>
+        <a href="#activity" class="hover:text-white transition-colors">Activity Log</a>
+      </div>
+      <div class="flex items-center gap-3">
+        <button id="navUploadBtn" class="text-sm rounded-md px-4 py-2 transition-all hover:ring-1 hover:ring-blue-400/40 hover:-translate-y-0.5 inline-flex items-center gap-2"
+                style="background: rgba(59,130,246,0.18);
+border: 1px solid rgba(59,130,246,0.35); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);">
+          <i data-lucide="upload" class="w-4 h-4"></i>
+          Upload Resume
+        </button>
+        <div class="relative">
+          <button id="notifBtn" class="text-sm rounded-md p-2 transition-all hover:ring-1 hover:ring-white/30"
+                  aria-haspopup="true" aria-expanded="false"
+                  style="background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.1); backdrop-filter: blur(10px);
+-webkit-backdrop-filter: blur(10px);">
+            <i data-lucide="bell" class="w-5 h-5"></i>
+          </button>
+          <div id="notifMenu" class="hidden absolute right-0 mt-2 w-72 rounded-md p-2 text-sm"
+               style="background: rgba(17,17,17,0.9);
+border: 1px solid rgba(255,255,255,0.1); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);">
+            <div class="px-3 py-2 text-gray-300">No new notifications</div>
+            <div class="mt-2 h-px" style="background: linear-gradient(90deg, transparent, rgba(255,255,255,0.15), transparent);"></div>
+            <button class="w-full text-left px-3 py-2 text-gray-400 hover:text-white transition">View all</button>
+          </div>
+        </div>
+        <div class="relative">
+          <button id="profileBtn" class="flex items-center gap-2 rounded-md pl-2 pr-3 py-1.5 hover:ring-1 hover:ring-white/30 transition"
+                  aria-haspopup="true" aria-expanded="false"
+                  style="background: rgba(255,255,255,0.06);
+border: 1px solid rgba(255,255,255,0.1); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);">
+            <div class="h-7 w-7 rounded-full grid place-items-center text-xs font-semibold"
+                 style="background: rgba(255,255,255,0.08);
+border: 1px solid rgba(255,255,255,0.12);">RS</div>
+            <i data-lucide="chevron-down" class="w-4 h-4 text-gray-400"></i>
+          </button>
+          <div id="profileMenu" class="hidden absolute right-0 mt-2 w-56 rounded-md p-2 text-sm"
+               style="background: rgba(17,17,17,0.9);
+border: 1px solid rgba(255,255,255,0.1); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);">
+            <a href="#" class="flex items-center gap-2 px-3 py-2 rounded hover:bg-white/5 transition">
+              <i data-lucide="user" class="w-4 h-4"></i> Account
+            </a>
+            <a href="#" class="flex items-center gap-2 px-3 py-2 rounded hover:bg-white/5 transition">
+              <i data-lucide="plug" class="w-4 h-4"></i> Integrations
+            </a>
+            <div class="my-2 h-px" style="background: linear-gradient(90deg, transparent, rgba(255,255,255,0.15), transparent);"></div>
+            <a href="#" class="flex items-center gap-2 px-3 py-2 text-red-300 hover:text-red-200 rounded hover:bg-white/5 transition">
+              <i data-lucide="log-out" class="w-4 h-4"></i> Sign out
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </nav>
+
+  <div class="relative z-10 h-px mx-auto container px-6" style="background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+backdrop-filter: blur(5px); -webkit-backdrop-filter: blur(5px);"></div>
+
+  <div class="relative overflow-hidden" id="dashboard">
+    <div class="container mx-auto px-6 py-16 md:py-24 relative z-10">
+      <div class="flex flex-col items-center text-center">
+        <div class="max-w-4xl mb-12">
+          <h1 class="text-5xl md:text-7xl lg:text-8xl font-semibold tracking-tight mb-6 leading-tight"
+              style="font-family: 'Plus Jakarta Sans', Inter, sans-serif;">
+            Automate Resume Screening with AI Precision.
+          </h1>
+          <p class="text-gray-300 text-lg md:text-xl mb-8 max-w-2xl mx-auto tracking-normal"
+             style="font-weight: 300;">
+            Upload a resume, watch every processing stage live, and act on decisions instantly.
+          </p>
+          <div class="flex flex-col sm:flex-row gap-4 justify-center">
+            <button id="heroUploadBtn" aria-label="Upload Resume"
+                    class="group inline-flex items-center justify-center gap-2 text-white text-base rounded-md px-8 py-4 transition-all hover:ring-1 hover:ring-blue-400/40 hover:-translate-y-0.5"
+                    style="background: rgba(59,130,246,0.18);
+border: 1px solid rgba(59,130,246,0.35); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);">
+              <i data-lucide="upload" class="w-5 h-5"></i>
+              Upload Resume
+            </button>
+            <a href="#requirements" aria-label="View Job Requirements"
+               class="group inline-flex items-center justify-center gap-2 text-base rounded-md px-8 py-4 transition-all hover:ring-1 hover:ring-white/30"
+               style="background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.1); backdrop-filter: blur(10px);
+-webkit-backdrop-filter: blur(10px);">
+              <i data-lucide="list-checks" class="w-5 h-5"></i>
+              View Job Requirements
+            </a>
+          </div>
+
+          <div class="mt-8 flex flex-wrap items-center justify-center gap-3">
+            <div class="inline-flex items-center gap-2 rounded-full px-3 py-1 text-sm text-blue-200"
+                 style="background: rgba(59,130,246,0.12);
+border: 1px solid rgba(59,130,246,0.35);">
+              <i data-lucide="timer" class="w-4 h-4"></i>
+              Average processing time 14s
+            </div>
+            <div class="inline-flex items-center gap-2 rounded-full px-3 py-1 text-sm text-emerald-200"
+                 style="background: rgba(16,185,129,0.12);
+border: 1px solid rgba(16,185,129,0.35);">
+              <i data-lucide="sparkles" class="w-4 h-4"></i>
+              AI accuracy 92%
+            </div>
+            <div class="inline-flex items-center gap-2 rounded-full px-3 py-1 text-sm text-fuchsia-200"
+                 style="background: rgba(217,70,239,0.12);
+border: 1px solid rgba(217,70,239,0.35);">
+              <i data-lucide="activity" class="w-4 h-4"></i>
+              Live stage tracking
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="my-16 relative z-10 h-px" style="background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+backdrop-filter: blur(5px); -webkit-backdrop-filter: blur(5px);"></div>
+
+      <div class="grid grid-cols-2 md:grid-cols-4 gap-6">
+        <div class="rounded-lg p-6 text-center transition hover:-translate-y-0.5 hover:ring-1 hover:ring-white/30"
+             style="background: rgba(255,255,255,0.05);
+border: 1px solid rgba(255,255,255,0.1); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);">
+          <p class="text-4xl font-semibold mb-2 tracking-tight" style="font-family: 'Plus Jakarta Sans', Inter, sans-serif;">14s</p>
+          <p class="text-gray-400 text-base" style="font-weight: 300;">Avg processing time</p>
+        </div>
+        <div class="rounded-lg p-6 text-center transition hover:-translate-y-0.5 hover:ring-1 hover:ring-white/30"
+             style="background: rgba(255,255,255,0.05);
+border: 1px solid rgba(255,255,255,0.1); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);">
+          <p class="text-4xl font-semibold mb-2 tracking-tight" style="font-family: 'Plus Jakarta Sans', Inter, sans-serif;">92%</p>
+          <p class="text-gray-400 text-base" style="font-weight: 300;">AI decision accuracy</p>
+        </div>
+        <div class="rounded-lg p-6 text-center transition hover:-translate-y-0.5 hover:ring-1 hover:ring-white/30"
+             style="background: rgba(255,255,255,0.05);
+border: 1px solid rgba(255,255,255,0.1); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);">
+          <p class="text-4xl font-semibold mb-2 tracking-tight" style="font-family: 'Plus Jakarta Sans', Inter, sans-serif;">24/7</p>
+          <p class="text-gray-400 text-base" style="font-weight: 300;">Monitoring & alerts</p>
+        </div>
+        <div class="rounded-lg p-6 text-center transition hover:-translate-y-0.5 hover:ring-1 hover:ring-white/30"
+             style="background: rgba(255,255,255,0.05);
+border: 1px solid rgba(255,255,255,0.1); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);">
+          <p class="text-4xl font-semibold mb-2 tracking-tight" style="font-family: 'Plus Jakarta Sans', Inter, sans-serif;">99.9%</p>
+          <p class="text-gray-400 text-base" style="font-weight: 300;">Uptime guarantee</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <section id="workflow" class="relative z-10 container mx-auto px-6 pb-20">
+    <div class="rounded-md mb-6 grid grid-cols-2 md:grid-cols-4 gap-3 p-3"
+         style="background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.1); backdrop-filter: blur(10px);
+-webkit-backdrop-filter: blur(10px);">
+      <div class="flex items-center justify-between px-3 py-2 rounded"
+           style="background: rgba(255,255,255,0.02);
+border: 1px solid rgba(255,255,255,0.06);">
+        <div class="flex items-center gap-2">
+          <span class="h-2 w-2 rounded-full bg-emerald-400" id="health-api-dot"></span>
+          <span class="text-sm text-gray-300">API</span>
+        </div>
+        <span class="text-xs text-emerald-300">Healthy</span>
+      </div>
+      <div class="flex items-center justify-between px-3 py-2 rounded"
+           style="background: rgba(255,255,255,0.02);
+border: 1px solid rgba(255,255,255,0.06);">
+        <div class="flex items-center gap-2">
+          <span class="h-2 w-2 rounded-full bg-emerald-400" id="health-gemini-dot"></span>
+          <span class="text-sm text-gray-300">Gemini</span>
+        </div>
+        <span class="text-xs text-emerald-300">Healthy</span>
+      </div>
+      <div class="flex items-center justify-between px-3 py-2 rounded"
+           style="background: rgba(255,255,255,0.02);
+border: 1px solid rgba(255,255,255,0.06);">
+        <div class="flex items-center gap-2">
+          <span class="h-2 w-2 rounded-full bg-emerald-400" id="health-gmail-dot"></span>
+          <span class="text-sm text-gray-300">Gmail</span>
+        </div>
+        <span class="text-xs text-emerald-300">Healthy</span>
+      </div>
+      <div class="flex items-center justify-between px-3 py-2 rounded"
+           style="background: rgba(255,255,255,0.02);
+border: 1px solid rgba(255,255,255,0.06);">
+        <div class="flex items-center gap-2">
+          <span class="h-2 w-2 rounded-full bg-yellow-400" id="health-sheets-dot"></span>
+          <span class="text-sm text-gray-300">Sheets</span>
+        </div>
+        <span class="text-xs text-yellow-300">Degraded</span>
+      </div>
+    </div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+      <div class="rounded-lg p-6 space-y-6"
+           style="background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); backdrop-filter: blur(10px);
+-webkit-backdrop-filter: blur(10px);">
+        <div class="flex items-center justify-between">
+          <h2 class="text-xl md:text-2xl font-semibold tracking-tight" style="font-family: 'Plus Jakarta Sans', Inter, sans-serif;">Workflow</h2>
+          <div class="flex items-center gap-2">
+            <button id="pauseBtn" class="text-sm rounded-md px-3 py-2 text-gray-200 hover:text-white transition hover:ring-1 hover:ring-white/30"
+                    disabled
+                    style="background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.1);">
+              <i data-lucide="pause" class="w-4 h-4"></i>
+              Pause
+            </button>
+            <button id="cancelBtn" class="text-sm rounded-md px-3 py-2 text-red-200 hover:text-white transition hover:ring-1 hover:ring-red-400/30"
+                    disabled
+                    style="background: rgba(239,68,68,0.12);
+border: 1px solid rgba(239,68,68,0.35);">
+              <i data-lucide="x" class="w-4 h-4"></i>
+              Cancel
+            </button>
+          </div>
+        </div>
+
+        <div id="uploadCard" class="rounded-md p-5 transition group"
+             style="background: rgba(255,255,255,0.04); border: 1px dashed rgba(255,255,255,0.2);">
+          <input id="fileInput" type="file" accept=".pdf,.doc,.docx,.txt" class="hidden" />
+          <div class="flex items-center justify-between">
+            <div class="flex items-center gap-4">
+              <div class="h-12 w-12 rounded-md grid place-items-center text-blue-300 ring-1 ring-white/15"
+                   style="background: rgba(59,130,246,0.15);">
+                <i data-lucide="file-up" class="w-6 h-6"></i>
+              </div>
+              <div>
+                <p class="text-base font-medium">Drag & drop resume here</p>
+                <p class="text-sm text-gray-400">PDF, DOCX, or TXT up to 5MB</p>
+              </div>
+            </div>
+            <button id="chooseFileBtn" class="text-sm rounded-md px-4 py-2 transition hover:ring-1 hover:ring-white/30"
+                    style="background: rgba(255,255,255,0.06);
+border: 1px solid rgba(255,255,255,0.1);">
+              Choose file
+            </button>
+          </div>
+          <div id="fileMeta" class="mt-4 hidden text-sm text-gray-300">
+            <div class="flex items-center justify-between">
+              <div class="flex items-center gap-3">
+                <i data-lucide="file" class="w-4 h-4"></i>
+                <span id="fileName">filename.pdf</span>
+                <span class="text-gray-500">•</span>
+                <span id="fileType">application/pdf</span>
+                <span class="text-gray-500">•</span>
+                <span id="fileSize">120 KB</span>
+              </div>
+              <button id="startProcessBtn" class="text-xs rounded px-3 py-1.5 hover:-translate-y-0.5 transition"
+                      style="background: rgba(59,130,246,0.18);
+border: 1px solid rgba(59,130,246,0.35);">
+                Start processing
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <div>
+          <div class="flex items-center justify-between mb-2">
+            <span class="text-sm text-gray-300">Progress</span>
+            <span id="progressLabel" class="text-sm text-gray-400">0%</span>
+          </div>
+          <div class="h-2 rounded overflow-hidden ring-1 ring-white/10"
+               style="background: rgba(255,255,255,0.06);">
+            <div id="progressBar" class="h-full w-0 transition-all duration-500"
+                 style="background: linear-gradient(90deg, rgba(59,130,246,0.5), rgba(168,85,247,0.5));"></div>
+          </div>
+        </div>
+
+        <div class="space-y-4">
+          <div class="flex items-start gap-3" data-step-id="upload" title="Upload">
+            <div class="h-8 w-8 rounded-md grid place-items-center ring-1 ring-white/15 text-blue-300"
+                 style="background: rgba(59,130,246,0.12);">
+              <i data-lucide="upload" class="w-4 h-4"></i>
+            </div>
+            <div class="flex-1">
+              <div class="flex items-center justify-between">
+                <p class="font-medium">Upload</p>
+                <div class="flex items-center gap-2">
+                  <span class="text-xs text-gray-400" data-ts="upload">—</span>
+                  <span class="text-xs rounded px-2 py-0.5" data-badge="upload"
+                        style="background: rgba(255,255,255,0.06);
+border: 1px solid rgba(255,255,255,0.1);">Pending</span>
+                </div>
+              </div>
+              <p class="text-sm text-gray-400">Receive and validate the file</p>
+            </div>
+          </div>
+          <div class="flex items-start gap-3" data-step-id="extract" title="Text Extraction">
+            <div class="h-8 w-8 rounded-md grid place-items-center ring-1 ring-white/15 text-indigo-300"
+                 style="background: rgba(99,102,241,0.12);">
+              <i data-lucide="file-text" class="w-4 h-4"></i>
+            </div>
+            <div class="flex-1">
+              <div class="flex items-center justify-between">
+                <p class="font-medium">Text Extraction</p>
+                <div class="flex items-center gap-2">
+                  <span class="text-xs text-gray-400" data-ts="extract">—</span>
+                  <span class="text-xs rounded px-2 py-0.5" data-badge="extract"
+                        style="background: rgba(255,255,255,0.06);
+border: 1px solid rgba(255,255,255,0.1);">Pending</span>
+                </div>
+              </div>
+              <p class="text-sm text-gray-400">Parse from PDF/DOCX</p>
+            </div>
+          </div>
+          <div class="flex items-start gap-3" data-step-id="structure" title="AI Structuring">
+            <div class="h-8 w-8 rounded-md grid place-items-center ring-1 ring-white/15 text-fuchsia-300"
+                 style="background: rgba(217,70,239,0.12);">
+              <i data-lucide="circuit-board" class="w-4 h-4"></i>
+            </div>
+            <div class="flex-1">
+              <div class="flex items-center justify-between">
+                <p class="font-medium">AI Structuring</p>
+                <div class="flex items-center gap-2">
+                  <span class="text-xs text-gray-400" data-ts="structure">—</span>
+                  <span class="text-xs rounded px-2 py-0.5" data-badge="structure"
+                        style="background: rgba(255,255,255,0.06);
+border: 1px solid rgba(255,255,255,0.1);">Pending</span>
+                </div>
+              </div>
+              <p class="text-sm text-gray-400">Normalize entities & fields</p>
+            </div>
+          </div>
+          <div class="flex items-start gap-3" data-step-id="score" title="Scoring">
+            <div class="h-8 w-8 rounded-md grid place-items-center ring-1 ring-white/15 text-emerald-300"
+                 style="background: rgba(16,185,129,0.12);">
+              <i data-lucide="star" class="w-4 h-4"></i>
+            </div>
+            <div class="flex-1">
+              <div class="flex items-center justify-between">
+                <p class="font-medium">Scoring</p>
+                <div class="flex items-center gap-2">
+                  <span class="text-xs text-gray-400" data-ts="score">—</span>
+                  <span class="text-xs rounded px-2 py-0.5" data-badge="score"
+                        style="background: rgba(255,255,255,0.06);
+border: 1px solid rgba(255,255,255,0.1);">Pending</span>
+                </div>
+              </div>
+              <p class="text-sm text-gray-400">Compute weighted category scores</p>
+            </div>
+          </div>
+          <div class="flex items-start gap-3" data-step-id="email" title="Email">
+            <div class="h-8 w-8 rounded-md grid place-items-center ring-1 ring-white/15 text-yellow-300"
+                 style="background: rgba(234,179,8,0.12);">
+              <i data-lucide="mail" class="w-4 h-4"></i>
+            </div>
+            <div class="flex-1">
+              <div class="flex items-center justify-between">
+                <p class="font-medium">Email</p>
+                <div class="flex items-center gap-2">
+                  <span class="text-xs text-gray-400" data-ts="email">—</span>
+                  <span class="text-xs rounded px-2 py-0.5" data-badge="email"
+                        style="background: rgba(255,255,255,0.06);
+border: 1px solid rgba(255,255,255,0.1);">Pending</span>
+                </div>
+              </div>
+              <p class="text-sm text-gray-400">Send confirmation or rejection</p>
+            </div>
+          </div>
+          <div class="flex items-start gap-3" data-step-id="sheets" title="Google Sheets">
+            <div class="h-8 w-8 rounded-md grid place-items-center ring-1 ring-white/15 text-cyan-300"
+                 style="background: rgba(34,211,238,0.12);">
+              <i data-lucide="table" class="w-4 h-4"></i>
+            </div>
+            <div class="flex-1">
+              <div class="flex items-center justify-between">
+                <p class="font-medium">Google Sheets</p>
+                <div class="flex items-center gap-2">
+                  <span class="text-xs text-gray-400" data-ts="sheets">—</span>
+                  <span class="text-xs rounded px-2 py-0.5" data-badge="sheets"
+                        style="background: rgba(255,255,255,0.06);
+border: 1px solid rgba(255,255,255,0.1);">Pending</span>
+                </div>
+              </div>
+              <p class="text-sm text-gray-400">Append row and sync</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div id="activity" class="rounded-lg p-6 flex flex-col"
+           style="background: rgba(255,255,255,0.05);
+border: 1px solid rgba(255,255,255,0.1); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);">
+        <div class="flex items-center justify-between mb-4">
+          <h2 class="text-xl md:text-2xl font-semibold tracking-tight" style="font-family: 'Plus Jakarta Sans', Inter, sans-serif;">Activity</h2>
+          <div class="flex items-center gap-2">
+            <button id="filterAll" class="text-xs rounded px-3 py-1.5 hover:ring-1 hover:ring-white/30 transition"
+                    data-filter="ALL"
+                    style="background: rgba(255,255,255,0.06);
+border: 1px solid rgba(255,255,255,0.1);">All</button>
+            <button id="filterAI" class="text-xs rounded px-3 py-1.5 hover:ring-1 hover:ring-fuchsia-400/30 transition"
+                    data-filter="AI"
+                    style="background: rgba(217,70,239,0.12);
+border: 1px solid rgba(217,70,239,0.35);">AI</button>
+            <button id="filterEmail" class="text-xs rounded px-3 py-1.5 hover:ring-1 hover:ring-yellow-400/30 transition"
+                    data-filter="Email"
+                    style="background: rgba(234,179,8,0.12);
+border: 1px solid rgba(234,179,8,0.35);">Email</button>
+            <button id="filterSheets" class="text-xs rounded px-3 py-1.5 hover:ring-1 hover:ring-cyan-400/30 transition"
+                    data-filter="Sheets"
+                    style="background: rgba(34,211,238,0.12);
+border: 1px solid rgba(34,211,238,0.35);">Sheets</button>
+          </div>
+        </div>
+
+        <div id="activityList" class="space-y-3 overflow-auto" style="max-height: 420px;">
+          </div>
+
+        <div class="mt-4 flex items-center justify-between">
+          <button id="viewLogsBtn" class="text-sm rounded-md px-4 py-2 hover:ring-1 hover:ring-white/30 transition inline-flex items-center gap-2"
+                  style="background: rgba(255,255,255,0.06);
+border: 1px solid rgba(255,255,255,0.1);">
+            <i data-lucide="file-json" class="w-4 h-4"></i>
+            View Full Logs
+          </button>
+          <span class="text-xs text-gray-500">Press U to upload</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="results" class="relative z-10 container mx-auto px-6 pb-20">
+    <div class="rounded-lg p-6 space-y-6"
+         style="background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); backdrop-filter: blur(10px);
+-webkit-backdrop-filter: blur(10px);">
+      <div class="flex items-center justify-between">
+        <h2 class="text-xl md:text-2xl font-semibold tracking-tight" style="font-family: 'Plus Jakarta Sans', Inter, sans-serif;">Candidate Result</h2>
+        <div class="flex items-center gap-2">
+          <button class="text-sm rounded-md px-3 py-2 hover:ring-1 hover:ring-white/30 transition inline-flex items-center gap-2"
+                  id="downloadPdfBtn"
+                  style="background: rgba(255,255,255,0.06);
+border: 1px solid rgba(255,255,255,0.1);">
+            <i data-lucide="download" class="w-4 h-4"></i>
+            Download PDF
+          </button>
+          <button class="text-sm rounded-md px-3 py-2 hover:ring-1 hover:ring-white/30 transition inline-flex items-center gap-2"
+                  id="copyJsonBtn"
+                  style="background: rgba(255,255,255,0.06);
+border: 1px solid rgba(255,255,255,0.1);">
+            <i data-lucide="copy" class="w-4 h-4"></i>
+            Copy JSON
+          </button>
+          <button class="text-sm rounded-md px-3 py-2 hover:ring-1 hover:ring-yellow-400/30 transition inline-flex items-center gap-2"
+                  id="manualEmailBtn"
+                  style="background: rgba(234,179,8,0.12);
+border: 1px solid rgba(234,179,8,0.35);">
+            <i data-lucide="send" class="w-4 h-4"></i>
+            Send Manual Email
+          </button>
+          <button class="text-sm rounded-md px-3 py-2 hover:ring-1 hover:ring-emerald-400/30 transition inline-flex items-center gap-2"
+                  id="addAtsBtn"
+                  style="background: rgba(16,185,129,0.12);
+border: 1px solid rgba(16,185,129,0.35);">
+            <i data-lucide="database" class="w-4 h-4"></i>
+            Add to ATS
+          </button>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <div class="rounded-md p-5"
+             style="background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.1);">
+          <div class="flex items-center gap-4">
+            <div class="h-14 w-14 rounded-md ring-1 ring-white/15 grid place-items-center text-lg font-medium"
+                 style="background: rgba(255,255,255,0.08);">JD</div>
+            <div>
+              <p id="candName" class="text-lg font-medium">John Doe</p>
+              <p id="candEmail" class="text-sm text-gray-400">john.doe@example.com</p>
+            </div>
+          </div>
+          <div class="mt-4 flex items-center gap-2">
+            <span id="finalScoreBadge" class="text-sm rounded-full px-3 py-1"
+                  style="background: rgba(16,185,129,0.12);
+border: 1px solid rgba(16,185,129,0.35); color: #A7F3D0;">
+              Final Score: 86 — PASS
+            </span>
+            <span class="text-xs text-gray-400">Decision: Ready to advance</span>
+          </div>
+
+          <div class="mt-6 grid grid-cols-3 gap-4">
+            <div class="rounded p-3 text-center"
+                 style="background: rgba(255,255,255,0.03);
+border: 1px solid rgba(255,255,255,0.08);">
+              <p class="text-sm text-gray-300 mb-2">Technical</p>
+              <div><canvas id="techChart" width="120" height="120"></canvas></div>
+            </div>
+            <div class="rounded p-3 text-center"
+                 style="background: rgba(255,255,255,0.03);
+border: 1px solid rgba(255,255,255,0.08);">
+              <p class="text-sm text-gray-300 mb-2">Experience</p>
+              <div><canvas id="expChart" width="120" height="120"></canvas></div>
+            </div>
+            <div class="rounded p-3 text-center"
+                 style="background: rgba(255,255,255,0.03);
+border: 1px solid rgba(255,255,255,0.08);">
+              <p class="text-sm text-gray-300 mb-2">Education</p>
+              <div><canvas id="eduChart" width="120" height="120"></canvas></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="rounded-md p-5 space-y-4"
+             style="background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.1);">
+          <p class="font-medium">Skills</p>
+          <div id="skillsCloud" class="flex flex-wrap gap-2">
+            <span class="text-xs rounded-full px-3 py-1 text-emerald-200"
+                  style="background: rgba(16,185,129,0.12);
+border: 1px solid rgba(16,185,129,0.35);">Python</span>
+            <span class="text-xs rounded-full px-3 py-1 text-emerald-200"
+                  style="background: rgba(16,185,129,0.12);
+border: 1px solid rgba(16,185,129,0.35);">SQL</span>
+            <span class="text-xs rounded-full px-3 py-1 text-red-200"
+                  style="background: rgba(239,68,68,0.12);
+border: 1px solid rgba(239,68,68,0.35);">Kubernetes</span>
+            <span class="text-xs rounded-full px-3 py-1 text-blue-200"
+                  style="background: rgba(59,130,246,0.12);
+border: 1px solid rgba(59,130,246,0.35);">Docker</span>
+            <span class="text-xs rounded-full px-3 py-1 text-red-200"
+                  style="background: rgba(239,68,68,0.12);
+border: 1px solid rgba(239,68,68,0.35);">GCP</span>
+            <span class="text-xs rounded-full px-3 py-1 text-emerald-200"
+                  style="background: rgba(16,185,129,0.12);
+border: 1px solid rgba(16,185,129,0.35);">REST APIs</span>
+          </div>
+
+          <div class="mt-4">
+            <button id="feedbackToggle" class="w-full flex items-center justify-between rounded-md px-3 py-2 hover:ring-1 hover:ring-white/30 transition"
+                    style="background: rgba(255,255,255,0.05);
+border: 1px solid rgba(255,255,255,0.1);">
+              <span class="text-sm">AI Feedback & Recommendations</span>
+              <i data-lucide="chevron-down" class="w-4 h-4"></i>
+            </button>
+            <div id="feedbackPanel" class="hidden mt-3 space-y-2 text-sm text-gray-300">
+              <p>Strengths: Strong Python and SQL experience. Clear project ownership and impact metrics.</p>
+              <p>Gaps: Limited Kubernetes exposure; consider upskilling or highlighting relevant containerization experience.</p>
+              <p>Recommendation: Pass to next round; assign a technical screen focused on system design and data modeling.</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="rounded-md p-5 space-y-4"
+             style="background: rgba(255,255,255,0.04);
+border: 1px solid rgba(255,255,255,0.1);">
+          <p class="font-medium">Decision Summary</p>
+          <div class="text-sm text-gray-300">
+            <p id="decisionText">Candidate meets threshold. Recommended for interview scheduling.</p>
+          </div>
+          <div class="mt-4 grid grid-cols-2 gap-3">
+            <button class="text-sm rounded-md px-4 py-2 hover:ring-1 hover:ring-white/30 transition inline-flex items-center gap-2"
+                    id="copyEmailBtn"
+                    style="background: rgba(255,255,255,0.06);
+border: 1px solid rgba(255,255,255,0.1);">
+              <i data-lucide="clipboard" class="w-4 h-4"></i>
+              Copy Outreach Email
+            </button>
+            <button class="text-sm rounded-md px-4 py-2 hover:ring-1 hover:ring-emerald-400/30 transition inline-flex items-center gap-2"
+                    id="scheduleBtn"
+                    style="background: rgba(16,185,129,0.12);
+border: 1px solid rgba(16,185,129,0.35);">
+              <i data-lucide="calendar" class="w-4 h-4"></i>
+              Schedule Interview
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="requirements" class="relative z-10 container mx-auto px-6 pb-24">
+    <div class="rounded-lg p-6 space-y-6"
+         style="background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); backdrop-filter: blur(10px);
+-webkit-backdrop-filter: blur(10px);">
+      <div class="flex items-center justify-between">
+        <h2 class="text-xl md:text-2xl font-semibold tracking-tight" style="font-family: 'Plus Jakarta Sans', Inter, sans-serif;">Job Requirements</h2>
+        <div class="flex items-center gap-2">
+          <select id="jobProfileSelect" class="text-sm rounded-md px-3 py-2 bg-transparent text-gray-200 hover:ring-1 hover:ring-white/30 transition"
+                  style="border: 1px solid rgba(255,255,255,0.12);">
+            <option class="bg-black">Data Engineer</option>
+            <option class="bg-black">Backend Engineer</option>
+            <option class="bg-black">ML Engineer</option>
+          </select>
+          <a href="#" id="editReqBtn" class="text-sm rounded-md px-4 py-2 hover:ring-1 hover:ring-white/30 transition inline-flex items-center gap-2"
+             style="background: rgba(255,255,255,0.06);
+border: 1px solid rgba(255,255,255,0.1);">
+            <i data-lucide="code-xml" class="w-4 h-4"></i>
+            Edit Requirements
+          </a>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div class="rounded-md p-5"
+             style="background: rgba(255,255,255,0.04);
+border: 1px solid rgba(255,255,255,0.1);">
+          <p class="text-sm text-gray-400 mb-2">Job Title</p>
+          <p id="reqTitle" class="font-medium">Data Engineer</p>
+          <div class="mt-4">
+            <p class="text-sm text-gray-400 mb-2">Required Skills</p>
+            <div id="reqRequired" class="flex flex-wrap gap-2">
+              <span class="text-xs rounded-full px-3 py-1 text-emerald-200"
+                    style="background: rgba(16,185,129,0.12);
+border: 1px solid rgba(16,185,129,0.35);">Python</span>
+              <span class="text-xs rounded-full px-3 py-1 text-emerald-200"
+                    style="background: rgba(16,185,129,0.12);
+border: 1px solid rgba(16,185,129,0.35);">SQL</span>
+              <span class="text-xs rounded-full px-3 py-1 text-emerald-200"
+                    style="background: rgba(16,185,129,0.12);
+border: 1px solid rgba(16,185,129,0.35);">ETL</span>
+            </div>
+          </div>
+        </div>
+        <div class="rounded-md p-5"
+             style="background: rgba(255,255,255,0.04);
+border: 1px solid rgba(255,255,255,0.1);">
+          <p class="text-sm text-gray-400 mb-2">Preferred Skills</p>
+          <div id="reqPreferred" class="flex flex-wrap gap-2">
+            <span class="text-xs rounded-full px-3 py-1 text-blue-200"
+                  style="background: rgba(59,130,246,0.12);
+border: 1px solid rgba(59,130,246,0.35);">Docker</span>
+            <span class="text-xs rounded-full px-3 py-1 text-blue-200"
+                  style="background: rgba(59,130,246,0.12);
+border: 1px solid rgba(59,130,246,0.35);">Airflow</span>
+            <span class="text-xs rounded-full px-3 py-1 text-blue-200"
+                  style="background: rgba(59,130,246,0.12);
+border: 1px solid rgba(59,130,246,0.35);">GCP</span>
+          </div>
+          <div class="mt-4">
+            <p class="text-sm text-gray-400 mb-2">Min Experience</p>
+            <p id="reqExp" class="font-medium">3+ years</p>
+          </div>
+        </div>
+        <div class="rounded-md p-5"
+             style="background: rgba(255,255,255,0.04);
+border: 1px solid rgba(255,255,255,0.1);">
+          <p class="text-sm text-gray-400 mb-2">Education</p>
+          <p id="reqEdu" class="font-medium">BS in CS or equivalent</p>
+          <div class="mt-4">
+            <p class="text-sm text-gray-400 mb-2">Scoring Weights</p>
+            <div class="text-sm text-gray-300 space-y-1">
+              <div class="flex items-center justify-between"><span>Technical</span><span id="wTech">50%</span></div>
+              <div class="flex items-center justify-between"><span>Experience</span><span id="wExp">30%</span></div>
+              <div class="flex items-center justify-between"><span>Education</span><span id="wEdu">20%</span></div>
+            </div>
+          </div>
+          <div class="mt-4 flex items-center justify-between">
+            <span class="text-sm text-gray-400">Passing Score</span>
+            <span id="reqPass" class="text-sm rounded px-2 py-0.5"
+                  style="background: rgba(16,185,129,0.12);
+border: 1px solid rgba(16,185,129,0.35);">80</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <footer class="relative z-10 container mx-auto px-6 pb-12">
+    <div class="rounded-md p-4 flex items-center justify-between"
+         style="background: rgba(255,255,255,0.04);
+border: 1px solid rgba(255,255,255,0.1);">
+      <div class="flex items-center gap-4 text-gray-300">
+        <div class="flex items-center gap-2">
+          <i data-lucide="wifi" class="w-4 h-4 text-emerald-300"></i><span class="text-sm">Network</span>
+        </div>
+        <div class="flex items-center gap-2">
+          <i data-lucide="mail" class="w-4 h-4 text-emerald-300"></i><span class="text-sm">SMTP</span>
+        </div>
+        <div class="flex items-center gap-2">
+          <i data-lucide="table" class="w-4 h-4 text-yellow-300"></i><span class="text-sm">Sheets</span>
+        </div>
+      </div>
+      <div class="flex items-center gap-4">
+        <a href="#" class="text-sm text-gray-400 hover:text-white transition">Changelog</a>
+        <a href="#" class="text-sm text-gray-400 hover:text-white transition">Privacy</a>
+      </div>
+    </div>
+  </footer>
+
+  <div id="logsModal" class="hidden fixed inset-0 z-50 items-center justify-center">
+    <div class="absolute inset-0 bg-black/60"></div>
+    <div class="relative w-[95%] max-w-3xl rounded-lg p-4"
+         style="background: rgba(17,17,17,0.9); border: 1px solid rgba(255,255,255,0.1); backdrop-filter: blur(12px);
+-webkit-backdrop-filter: blur(12px);">
+      <div class="flex items-center justify-between mb-3">
+        <h3 class="text-lg font-medium tracking-tight" style="font-family: 'Plus Jakarta Sans', Inter, sans-serif;">Raw Logs (JSON)</h3>
+        <button id="closeLogsBtn" class="rounded p-2 hover:ring-1 hover:ring-white/30 transition"
+                style="background: rgba(255,255,255,0.06);
+border: 1px solid rgba(255,255,255,0.1);">
+          <i data-lucide="x" class="w-4 h-4"></i>
+        </button>
+      </div>
+      <div class="rounded-md p-3 overflow-auto text-xs text-gray-200"
+           style="max-height: 60vh;
+background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.08);">
+        <pre id="logsContent" class="whitespace-pre-wrap"></pre>
+      </div>
+      <div class="mt-3 flex items-center justify-end gap-2">
+        <button id="copyLogsBtn" class="text-sm rounded-md px-3 py-2 hover:ring-1 hover:ring-white/30 transition inline-flex items-center gap-2"
+                style="background: rgba(255,255,255,0.06);
+border: 1px solid rgba(255,255,255,0.1);">
+          <i data-lucide="copy" class="w-4 h-4"></i>
+          Copy
+        </button>
+        <button id="downloadLogsBtn" class="text-sm rounded-md px-3 py-2 hover:ring-1 hover:ring-blue-400/30 transition inline-flex items-center gap-2"
+                style="background: rgba(59,130,246,0.18);
+border: 1px solid rgba(59,130,246,0.35);">
+          <i data-lucide="download" class="w-4 h-4"></i>
+          Download
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Icons
+    document.addEventListener('DOMContentLoaded', function () {
+      lucide.createIcons({ attrs: { 'stroke-width': 1.5 } });
+    });
+
+    // Shader background (kept as-is, minimal changes)
+    const shaderCanvas = document.getElementById('shaderCanvas');
+    const gl = shaderCanvas.getContext('webgl');
+
+    function resizeCanvas() {
+      shaderCanvas.width = window.innerWidth;
+      shaderCanvas.height = window.innerHeight;
+      gl.viewport(0, 0, shaderCanvas.width, shaderCanvas.height);
+    }
+    window.addEventListener('resize', resizeCanvas);
+    resizeCanvas();
+
+    const vertexShaderSource = `
+      attribute vec2 a_position;
+      void main() { gl_Position = vec4(a_position, 0.0, 1.0); }
+    `;
+    const fragmentShaderSource = `
+      precision highp float;
+      uniform vec2 iResolution;
+      uniform float iTime;
+      uniform vec2 iMouse;
+      const int POINTS = 16;
+      const float WAVE_OFFSET = 12000.0;
+      const float SPEED = 1.0 / 12.0;
+      const float COLOR_SPEED = 1.0 / 4.0;
+      uniform float BRIGHTNESS;
+      void voronoi(vec2 uv, inout vec3 col) {
+        vec3 voronoi = vec3(0.0);
+        float time = (iTime + WAVE_OFFSET) * SPEED;
+        float bestDistance = 999.0;
+        float lastBestDistance = bestDistance;
+        for (int i = 0; i < POINTS; i++) {
+          float fi = float(i);
+          vec2 p = vec2(mod(fi, 1.0) * 0.1 + sin(fi),
+                        -0.05 + 0.15 * float(i / 10) + cos(fi + time * cos(uv.x * 0.025)));
+          p.x += 0.01 * sin(iMouse.x / iResolution.x * 3.14);
+          p.y += 0.01 * cos(iMouse.y / iResolution.y * 3.14);
+          float d = distance(uv, p);
+          if (d < bestDistance) {
+            lastBestDistance = bestDistance;
+            bestDistance = d;
+            voronoi.x = p.x;
+            voronoi.yz = vec2(p.x * 0.4 + p.y, p.y) * vec2(0.9, 0.87);
+          }
+        }
+        col *= 0.68 + 0.19 * voronoi;
+        col += smoothstep(0.99, 1.05, 1.0 - abs(bestDistance - lastBestDistance)) * 0.9;
+        col += smoothstep(0.95, 1.01, 1.0 - abs(bestDistance - lastBestDistance)) * 0.1 * col;
+        col += (voronoi) * 0.1 * smoothstep(0.5, 1.0, 1.0 - abs(bestDistance - lastBestDistance));
+      }
+      void main() {
+        vec2 uv = gl_FragCoord.xy / iResolution.xy;
+        vec3 col = 0.5 + 0.5 * cos(iTime * COLOR_SPEED + uv.xyx + vec3(0, 2, 4));
+        voronoi(uv * 4.0 - 1.0, col);
+        gl_FragColor = vec4(col, 1.0) * BRIGHTNESS;
+      }
+    `;
+    function compileShader(source, type) {
+      const shader = gl.createShader(type);
+      gl.shaderSource(shader, source);
+      gl.compileShader(shader);
+      return shader;
+    }
+    const vertexShader = compileShader(vertexShaderSource, gl.VERTEX_SHADER);
+    const fragmentShader = compileShader(fragmentShaderSource, gl.FRAGMENT_SHADER);
+    const program = gl.createProgram();
+    gl.attachShader(program, vertexShader);
+    gl.attachShader(program, fragmentShader);
+    gl.linkProgram(program);
+
+    const positionBuffer = gl.createBuffer();
+    gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
+    const positions = new Float32Array([-1.0, -1.0, 1.0, -1.0, -1.0, 1.0, 1.0, 1.0]);
+    gl.bufferData(gl.ARRAY_BUFFER, positions, gl.STATIC_DRAW);
+
+    const positionAttribLocation = gl.getAttribLocation(program, 'a_position');
+    const resolutionUniformLocation = gl.getUniformLocation(program, 'iResolution');
+    const timeUniformLocation = gl.getUniformLocation(program, 'iTime');
+    const mouseUniformLocation = gl.getUniformLocation(program, 'iMouse');
+    const brightnessUniformLocation = gl.getUniformLocation(program, 'BRIGHTNESS');
+
+    gl.enableVertexAttribArray(positionAttribLocation);
+    gl.vertexAttribPointer(positionAttribLocation, 2, gl.FLOAT, false, 0, 0);
+    let startTime = Date.now();
+    let brightness = 0.8;
+    let mouseX = shaderCanvas.width / 2;
+    let mouseY = shaderCanvas.height / 2;
+    shaderCanvas.addEventListener('mousemove', function(e) {
+      mouseX = e.clientX;
+      mouseY = e.clientY;
+    });
+    function render() {
+      requestAnimationFrame(render);
+      const elapsedTime = (Date.now() - startTime) / 1000;
+      gl.useProgram(program);
+      gl.uniform2f(resolutionUniformLocation, shaderCanvas.width, shaderCanvas.height);
+      gl.uniform1f(timeUniformLocation, elapsedTime);
+      gl.uniform2f(mouseUniformLocation, mouseX, mouseY);
+      gl.uniform1f(brightnessUniformLocation, brightness);
+      gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
+    }
+    requestAnimationFrame(render);
+
+    // App state
+    const state = {
+      uploading: false,
+      paused: false,
+      canceled: false,
+      progress: 0,
+      currentStepIndex: -1,
+      steps: [
+        { id: 'upload', label: 'Upload', type: 'INFO', duration: 1500 },
+        { id: 'extract', label: 'Text Extraction', type: 'AI', duration: 2500 },
+        { id: 'structure', label: 'AI Structuring', type: 'AI', duration: 2500 },
+        { id: 'score', label: 'Scoring', type: 'AI', duration: 2000 },
+        { id: 'email', label: 'Email', type: 'Email', duration: 1500 },
+        { id: 'sheets', label: 'Google Sheets', type: 'Sheets', duration: 1800 }
+      ],
+      logs: [],
+      candidate: {
+        name: 'John Doe',
+        email: 'john.doe@example.com',
+        scores: { tech: 86, exp: 80, edu: 72 },
+        final: 84,
+        pass: true
+      }
+    };
+
+    // Elements
+    const fileInput = document.getElementById('fileInput');
+    const chooseFileBtn = document.getElementById('chooseFileBtn');
+    const uploadCard = document.getElementById('uploadCard');
+    const fileMeta = document.getElementById('fileMeta');
+    const fileNameEl = document.getElementById('fileName');
+    const fileTypeEl = document.getElementById('fileType');
+    const fileSizeEl = document.getElementById('fileSize');
+    const startProcessBtn = document.getElementById('startProcessBtn');
+    const progressBar = document.getElementById('progressBar');
+    const progressLabel = document.getElementById('progressLabel');
+    const pauseBtn = document.getElementById('pauseBtn');
+    const cancelBtn = document.getElementById('cancelBtn');
+    const activityList = document.getElementById('activityList');
+    const documentRoot = document;
+
+    // Activity filter buttons
+    document.addEventListener('DOMContentLoaded', () => {
+      const filterButtons = document.querySelectorAll('#activity [data-filter]');
+      filterButtons.forEach(btn => btn.addEventListener('click', () => {
+        setActivityFilter(btn.getAttribute('data-filter'));
+      }));
+    });
+    const viewLogsBtn = document.getElementById('viewLogsBtn');
+    const logsModal = document.getElementById('logsModal');
+    const closeLogsBtn = document.getElementById('closeLogsBtn');
+    const logsContent = document.getElementById('logsContent');
+    const copyLogsBtn = document.getElementById('copyLogsBtn');
+    const downloadLogsBtn = document.getElementById('downloadLogsBtn');
+
+    const notifBtn = document.getElementById('notifBtn');
+    const notifMenu = document.getElementById('notifMenu');
+    const profileBtn = document.getElementById('profileBtn');
+    const profileMenu = document.getElementById('profileMenu');
+    const heroUploadBtn = document.getElementById('heroUploadBtn');
+    const navUploadBtn = document.getElementById('navUploadBtn');
+
+    const copyJsonBtn = document.getElementById('copyJsonBtn');
+    const downloadPdfBtn = document.getElementById('downloadPdfBtn');
+    const manualEmailBtn = document.getElementById('manualEmailBtn');
+    const addAtsBtn = document.getElementById('addAtsBtn');
+    const copyEmailBtn = document.getElementById('copyEmailBtn');
+    const scheduleBtn = document.getElementById('scheduleBtn');
+
+    const feedbackToggle = document.getElementById('feedbackToggle');
+    const feedbackPanel = document.getElementById('feedbackPanel');
+    const jobProfileSelect = document.getElementById('jobProfileSelect');
+    const editReqBtn = document.getElementById('editReqBtn');
+
+    // Result section elements
+    const candNameEl = document.getElementById('candName');
+    const candEmailEl = document.getElementById('candEmail');
+    const finalScoreBadge = document.getElementById('finalScoreBadge');
+    const decisionText = document.getElementById('decisionText');
+
+    // Requirement elements
+    const reqTitle = document.getElementById('reqTitle');
+    const reqRequired = document.getElementById('reqRequired');
+    const reqPreferred = document.getElementById('reqPreferred');
+    const reqExp = document.getElementById('reqExp');
+    const reqEdu = document.getElementById('reqEdu');
+    const wTech = document.getElementById('wTech');
+    const wExp = document.getElementById('wExp');
+    const wEdu = document.getElementById('wEdu');
+    const reqPass = document.getElementById('reqPass');
+
+    // Health dots
+    const healthApiDot = document.getElementById('health-api-dot');
+    const healthGeminiDot = document.getElementById('health-gemini-dot');
+    const healthGmailDot = document.getElementById('health-gmail-dot');
+    const healthSheetsDot = document.getElementById('health-sheets-dot');
+
+    // *** Backend API Configuration ***
+    const API_BASE_URL = 'http://127.0.0.1:8002';
+
+    // Utility: Toasts
+    const toastContainer = document.createElement('div');
+    toastContainer.className = 'fixed z-[60] top-4 right-4 space-y-2';
+    document.body.appendChild(toastContainer);
+
+    function showToast(message, variant = 'default') {
+      const colorMap = {
+        default: { bg: 'rgba(255,255,255,0.06)', border: 'rgba(255,255,255,0.1)', text: 'text-white' },
+        success: { bg: 'rgba(16,185,129,0.12)', border: 'rgba(16,185,129,0.35)', text: 'text-emerald-100' },
+        warning: { bg: 'rgba(234,179,8,0.12)', border: 'rgba(234,179,8,0.35)', text: 'text-yellow-100' },
+        danger: { bg: 'rgba(239,68,68,0.12)', border: 'rgba(239,68,68,0.35)', text: 'text-red-100' }
+      }[variant] || this.default;
+
+      const div = document.createElement('div');
+      div.className = `rounded-md px-3 py-2 text-sm shadow-lg ${colorMap.text}`;
+      div.style.background = colorMap.bg;
+      div.style.border = `1px solid ${colorMap.border}`;
+      div.textContent = message;
+      toastContainer.appendChild(div);
+      setTimeout(() => {
+        div.style.opacity = '0';
+        div.style.transform = 'translateY(-4px)';
+        div.style.transition = 'all 300ms';
+        setTimeout(() => div.remove(), 300);
+      }, 2200);
+    }
+
+    // Utility: format time
+    function ts() {
+      const d = new Date();
+      return d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+    }
+
+    // Activity feed
+    let currentActivityFilter = 'ALL';
+    function setActivityFilter(filter) {
+      currentActivityFilter = filter;
+      // Toggle button styles
+      document.querySelectorAll('#activity [data-filter]').forEach(btn => {
+        const active = btn.getAttribute('data-filter') === filter;
+        btn.style.boxShadow = active ? 'inset 0 0 0 1px rgba(255,255,255,0.25)' : 'none';
+        btn.style.opacity = active ? '1' : '0.85';
+      });
+      applyActivityFilter();
+    }
+
+    function applyActivityFilter() {
+      const items = activityList.querySelectorAll('[data-type]');
+      items.forEach(el => {
+        const t = el.getAttribute('data-type');
+        el.style.display = (currentActivityFilter === 'ALL' || t === currentActivityFilter) ? '' : 'none';
+      });
+    }
+
+    function addActivity(type, message, extra = '') {
+      const li = document.createElement('div');
+      li.setAttribute('data-type', type);
+      li.className = 'flex items-start gap-3 p-3 rounded-md';
+      li.style.background = 'rgba(255,255,255,0.03)';
+      li.style.border = '1px solid rgba(255,255,255,0.08)';
+      const iconMap = {
+        AI: { name: 'sparkles', color: 'text-fuchsia-300', bg: 'rgba(217,70,239,0.12)', ring: 'rgba(217,70,239,0.35)' },
+        Email: { name: 'mail', color: 'text-yellow-300', bg: 'rgba(234,179,8,0.12)', ring: 'rgba(234,179,8,0.35)' },
+        Sheets: { name: 'table', color: 'text-cyan-300', bg: 'rgba(34,211,238,0.12)', ring: 'rgba(34,211,238,0.35)' },
+        INFO: { name: 'info', color: 'text-blue-300', bg: 'rgba(59,130,246,0.12)', ring: 'rgba(59,130,246,0.35)' },
+        ERROR: { name: 'alert-circle', color: 'text-red-300', bg: 'rgba(239,68,68,0.12)', ring: 'rgba(239,68,68,0.35)' },
+        SUCCESS: { name: 'check-circle-2', color: 'text-emerald-300', bg: 'rgba(16,185,129,0.12)', ring: 'rgba(16,185,129,0.35)' }
+      };
+      const m = iconMap[type] || iconMap.INFO;
+
+      li.innerHTML = `
+        <div class="h-8 w-8 rounded-md grid place-items-center ${m.color}" style="background: ${m.bg}; border: 1px solid ${m.ring};">
+          <i data-lucide="${m.name}" class="w-4 h-4"></i>
+        </div>
+        <div class="flex-1">
+          <div class="flex items-center justify-between">
+            <p class="text-sm">${message}</p>
+            <span class="text-[10px] text-gray-400">${ts()}</span>
+          </div>
+          ${extra ? `<p class="text-xs text-gray-400 mt-0.5">${extra}</p>` : ``}
+        </div>
+      `;
+      activityList.prepend(li);
+      // Limit items
+      const max = 60;
+      while (activityList.children.length > max) activityList.lastElementChild.remove();
+      lucide.createIcons({ attrs: { 'stroke-width': 1.5 } });
+      applyActivityFilter();
+
+      // Log it
+      state.logs.push({ t: Date.now(), type, message, extra });
+    }
+
+    // Timeline helpers
+    function setStepStatus(id, status) {
+      const badge = document.querySelector(`[data-badge="${id}"]`);
+      const timeEl = document.querySelector(`[data-ts="${id}"]`);
+      if (!badge) return;
+      const styles = {
+        Pending: { bg: 'rgba(255,255,255,0.06)', border: 'rgba(255,255,255,0.1)', color: '#E5E7EB' },
+        Running: { bg: 'rgba(59,130,246,0.18)', border: 'rgba(59,130,246,0.35)', color: '#BFDBFE' },
+        Done: { bg: 'rgba(16,185,129,0.12)', border: 'rgba(16,185,129,0.35)', color: '#A7F3D0' },
+        Error: { bg: 'rgba(239,68,68,0.12)', border: 'rgba(239,68,68,0.35)', color: '#FECACA' },
+        Canceled: { bg: 'rgba(107,114,128,0.12)', border: 'rgba(107,114,128,0.35)', color: '#D1D5DB' }
+      }[status] || {};
+      badge.textContent = status;
+      badge.style.background = styles.bg;
+      badge.style.border = `1px solid ${styles.border}`;
+      badge.style.color = styles.color;
+      if (timeEl && status !== 'Pending') timeEl.textContent = ts();
+    }
+
+    function updateProgressDisplay(pct) {
+      const clamped = Math.max(0, Math.min(100, Math.round(pct)));
+      progressBar.style.width = `${clamped}%`;
+      progressLabel.textContent = `${clamped}%`;
+    }
+
+    // File handling
+    let selectedFile = null;
+
+    function setSelectedFile(file) {
+      if (!file) return;
+      selectedFile = file;
+      fileNameEl.textContent = file.name;
+      fileTypeEl.textContent = file.type || 'application/octet-stream';
+      const sizeKB = (file.size / 1024).toFixed(1);
+      fileSizeEl.textContent = `${sizeKB} KB`;
+      fileMeta.classList.remove('hidden');
+      showToast('File ready. Click Start processing.', 'success');
+    }
+
+    chooseFileBtn.addEventListener('click', () => fileInput.click());
+    heroUploadBtn.addEventListener('click', () => fileInput.click());
+    navUploadBtn.addEventListener('click', () => fileInput.click());
+
+    fileInput.addEventListener('change', (e) => {
+      const file = e.target.files[0];
+      if (!file) return;
+      if (file.size > 5 * 1024 * 1024) {
+        showToast('File exceeds 5MB limit.', 'danger');
+        return;
+      }
+      setSelectedFile(file);
+    });
+    uploadCard.addEventListener('dragover', (e) => {
+      e.preventDefault();
+      uploadCard.style.borderColor = 'rgba(59,130,246,0.6)';
+    });
+    uploadCard.addEventListener('dragleave', () => {
+      uploadCard.style.borderColor = 'rgba(255,255,255,0.2)';
+    });
+    uploadCard.addEventListener('drop', (e) => {
+      e.preventDefault();
+      uploadCard.style.borderColor = 'rgba(255,255,255,0.2)';
+      const file = e.dataTransfer.files[0];
+      if (!file) return;
+      if (!/\.(pdf|doc|docx|txt)$/i.test(file.name)) {
+        showToast('Unsupported file type. Use PDF, DOCX, or TXT.', 'warning');
+        return;
+      }
+      if (file.size > 5 * 1024 * 1024) {
+        showToast('File exceeds 5MB limit.', 'danger');
+        return;
+      }
+      fileInput.files = e.dataTransfer.files;
+      setSelectedFile(file);
+    });
+
+    // Workflow simulation
+    function sleep(ms) { return new Promise(res => setTimeout(res, ms)); }
+
+    async function runWorkflow() {
+      state.uploading = true;
+      state.canceled = false;
+      state.paused = false;
+      state.progress = 0;
+      state.currentStepIndex = -1;
+
+      updateProgressDisplay(0);
+      pauseBtn.disabled = false;
+      cancelBtn.disabled = false;
+      // Reset timeline to pending
+      state.steps.forEach(s => setStepStatus(s.id, 'Pending'));
+
+      addActivity('INFO', 'Processing started', selectedFile ? selectedFile.name : 'No filename');
+      for (let i = 0; i < state.steps.length; i++) {
+        if (state.canceled) break;
+        const step = state.steps[i];
+        state.currentStepIndex = i;
+        setStepStatus(step.id, 'Running');
+        addActivity(step.type, `Step: ${step.label}`, 'Running');
+
+        let elapsed = 0;
+        const tick = 100;
+        while (elapsed < step.duration) {
+          if (state.canceled) break;
+          while (state.paused) {
+            await sleep(200);
+          }
+          await sleep(tick);
+          elapsed += tick;
+          const base = (i / state.steps.length) * 100;
+          const delta = (elapsed / step.duration) * (100 / state.steps.length);
+          updateProgressDisplay(base + delta);
+        }
+        if (state.canceled) {
+          setStepStatus(step.id, 'Canceled');
+          addActivity('INFO', `Step canceled: ${step.label}`);
+          break;
+        }
+        setStepStatus(step.id, 'Done');
+        addActivity('SUCCESS', `Step complete: ${step.label}`);
+      }
+
+      if (!state.canceled) {
+        state.progress = 100;
+        updateProgressDisplay(100);
+        addActivity('SUCCESS', 'Processing completed');
+        finalizeCandidate();
+      } else {
+        addActivity('ERROR', 'Processing canceled');
+      }
+
+      pauseBtn.disabled = true;
+      cancelBtn.disabled = true;
+      // Reset pause button label/icon
+      pauseBtn.innerHTML = `<i data-lucide="pause" class="w-4 h-4"></i> Pause`;
+      lucide.createIcons({ attrs: { 'stroke-width': 1.5 } });
+    }
+
+    function finalizeCandidate() {
+      // Derive final score using weights
+      const wt = parseInt(wTech.textContent) / 100;
+      const we = parseInt(wExp.textContent) / 100;
+      const wd = parseInt(wEdu.textContent) / 100;
+      const s = state.candidate.scores;
+      const final = Math.round(s.tech * wt + s.exp * we + s.edu * wd);
+      state.candidate.final = final;
+      const passing = parseInt(reqPass.textContent);
+      state.candidate.pass = final >= passing;
+
+      candNameEl.textContent = state.candidate.name;
+      candEmailEl.textContent = state.candidate.email;
+      finalScoreBadge.textContent = `Final Score: ${final} — ${state.candidate.pass ? 'PASS' : 'REVIEW'}`;
+      finalScoreBadge.style.background = state.candidate.pass ? 'rgba(16,185,129,0.12)' : 'rgba(234,179,8,0.12)';
+      finalScoreBadge.style.border = state.candidate.pass ? '1px solid rgba(16,185,129,0.35)' : '1px solid rgba(234,179,8,0.35)';
+      finalScoreBadge.style.color = state.candidate.pass ? '#A7F3D0' : '#FDE68A';
+      decisionText.textContent = state.candidate.pass
+        ? 'Candidate meets threshold. Recommended for interview scheduling.'
+        : 'Borderline score. Recommend manual review before proceeding.';
+
+      updateCharts();
+    }
+
+    // Pause/Cancel
+    pauseBtn.addEventListener('click', () => {
+      if (pauseBtn.disabled) return;
+      state.paused = !state.paused;
+      if (state.paused) {
+        pauseBtn.innerHTML = `<i data-lucide="play" class="w-4 h-4"></i> Resume`;
+        addActivity('INFO', 'Workflow paused');
+      } else {
+        pauseBtn.innerHTML = `<i data-lucide="pause" class="w-4 h-4"></i> Pause`;
+        addActivity('INFO', 'Workflow resumed');
+      }
+      lucide.createIcons({ attrs: { 'stroke-width': 1.5 } });
+    });
+    cancelBtn.addEventListener('click', () => {
+      if (cancelBtn.disabled) return;
+      state.canceled = true;
+      showToast('Workflow canceled', 'warning');
+    });
+
+    // Start
+    startProcessBtn.addEventListener('click', () => {
+      if (!selectedFile) {
+        showToast('Please choose a file first.', 'warning');
+        return;
+      }
+      runWorkflow();
+    });
+
+    // Keyboard shortcut
+    document.addEventListener('keydown', (e) => {
+      if ((e.key === 'u' || e.key === 'U') && !e.metaKey && !e.ctrlKey && !e.altKey) {
+        e.preventDefault();
+        fileInput.click();
+      }
+    });
+
+    // Menus: notifications and profile
+    function closeAllMenus() {
+      notifMenu.classList.add('hidden');
+      notifBtn.setAttribute('aria-expanded', 'false');
+      profileMenu.classList.add('hidden');
+      profileBtn.setAttribute('aria-expanded', 'false');
+    }
+    notifBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const open = notifMenu.classList.contains('hidden');
+      closeAllMenus();
+      if (open) {
+        notifMenu.classList.remove('hidden');
+        notifBtn.setAttribute('aria-expanded', 'true');
+      }
+    });
+    profileBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const open = profileMenu.classList.contains('hidden');
+      closeAllMenus();
+      if (open) {
+        profileMenu.classList.remove('hidden');
+        profileBtn.setAttribute('aria-expanded', 'true');
+      }
+    });
+    document.addEventListener('click', () => closeAllMenus());
+    document.addEventListener('keyup', (e) => { if (e.key === 'Escape') closeAllMenus(); });
+
+    // Logs modal
+    viewLogsBtn.addEventListener('click', () => {
+      logsContent.textContent = JSON.stringify(state.logs, null, 2);
+      logsModal.classList.remove('hidden');
+      logsModal.classList.add('flex');
+    });
+    closeLogsBtn.addEventListener('click', () => {
+      logsModal.classList.add('hidden');
+      logsModal.classList.remove('flex');
+    });
+    logsModal.addEventListener('click', (e) => {
+      if (e.target === logsModal) {
+        closeLogsBtn.click();
+      }
+    });
+    copyLogsBtn.addEventListener('click', async () => {
+      try {
+        await navigator.clipboard.writeText(logsContent.textContent);
+        showToast('Logs copied to clipboard', 'success');
+      } catch {
+        showToast('Copy failed', 'danger');
+      }
+    });
+    downloadLogsBtn.addEventListener('click', () => {
+      const blob = new Blob([logsContent.textContent], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `logs-${Date.now()}.json`;
+      a.click();
+      URL.revokeObjectURL(url);
+    });
+
+    // Feedback accordion
+    feedbackToggle.addEventListener('click', () => {
+      const isHidden = feedbackPanel.classList.contains('hidden');
+      feedbackPanel.classList.toggle('hidden');
+      feedbackToggle.querySelector('i').setAttribute('data-lucide', isHidden ? 'chevron-up' : 'chevron-down');
+      lucide.createIcons({ attrs: { 'stroke-width': 1.5 } });
+    });
+
+    // Charts
+    let techChart, expChart, eduChart;
+    function makeDoughnut(ctx, val, color) {
+      const bgTrack = 'rgba(255,255,255,0.08)';
+      return new Chart(ctx, {
+        type: 'doughnut',
+        data: {
+          labels: ['Score', 'Remaining'],
+          datasets: [{
+            data: [val, 100 - val],
+            backgroundColor: [color, bgTrack],
+            borderWidth: 0,
+            hoverOffset: 2,
+            cutout: '70%',
+          }]
+        },
+        options: {
+          plugins: {
+            legend: { display: false },
+            tooltip: { enabled: false }
+          }
+        }
+      });
+    }
+    function updateCharts() {
+      const colors = {
+        tech: 'rgba(59,130,246,0.85)',
+        exp: 'rgba(16,185,129,0.85)',
+        edu: 'rgba(217,70,239,0.85)'
+      };
+      if (!techChart) {
+        techChart = makeDoughnut(document.getElementById('techChart'), state.candidate.scores.tech, colors.tech);
+        expChart = makeDoughnut(document.getElementById('expChart'), state.candidate.scores.exp, colors.exp);
+        eduChart = makeDoughnut(document.getElementById('eduChart'), state.candidate.scores.edu, colors.edu);
+      } else {
+        techChart.data.datasets[0].data = [state.candidate.scores.tech, 100 - state.candidate.scores.tech];
+        expChart.data.datasets[0].data = [state.candidate.scores.exp, 100 - state.candidate.scores.exp];
+        eduChart.data.datasets[0].data = [state.candidate.scores.edu, 100 - state.candidate.scores.edu];
+        techChart.update(); expChart.update(); eduChart.update();
+      }
+    }
+    document.addEventListener('DOMContentLoaded', updateCharts);
+
+    // Copy JSON
+    copyJsonBtn.addEventListener('click', async () => {
+      const payload = {
+        candidate: state.candidate,
+        file: selectedFile ? { name: selectedFile.name, type: selectedFile.type, size: selectedFile.size } : null,
+        logs: state.logs
+      };
+      try {
+        await navigator.clipboard.writeText(JSON.stringify(payload, null, 2));
+        showToast('Candidate JSON copied', 'success');
+      } catch {
+        showToast('Failed to copy JSON', 'danger');
+      }
+    });
+
+    // Download "PDF" print
+    downloadPdfBtn.addEventListener('click', () => {
+      const w = window.open('', '_blank');
+      const passColor = state.candidate.pass ? '#10B981' : '#F59E0B';
+      w.document.write(`
+        <html><head><title>Candidate Report</title>
+        <style>
+          body { font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto; padding: 24px; }
+          .card { border: 1px solid #e5e7eb; border-radius: 8px; padding: 16px; margin-bottom: 12px; }
+          .badge { display: inline-block; padding: 4px 10px; border-radius: 999px; color: white; background: ${passColor}; }
+          h1 { margin: 0 0 4px 0; font-size: 20px; }
+          h2 { margin: 16px 0 8px 0; font-size: 16px; }
+          table { width: 100%; border-collapse: collapse; }
+          td { padding: 6px 0; }
+        </style></head><body>
+          <div class="card">
+            <h1>Candidate Report</h1>
+            <div>${new Date().toLocaleString()}</div>
+          </div>
+          <div class="card">
+            <h2>Summary</h2>
+            <table>
+              <tr><td>Name</td><td><b>${state.candidate.name}</b></td></tr>
+              <tr><td>Email</td><td>${state.candidate.email}</td></tr>
+              <tr><td>Final Score</td><td><span class="badge">${state.candidate.final} — ${state.candidate.pass ? 'PASS' : 'REVIEW'}</span></td></tr>
+            </table>
+          </div>
+          <div class="card">
+            <h2>Scores</h2>
+            <table>
+              <tr><td>Technical</td><td>${state.candidate.scores.tech}</td></tr>
+              <tr><td>Experience</td><td>${state.candidate.scores.exp}</td></tr>
+              <tr><td>Education</td><td>${state.candidate.scores.edu}</td></tr>
+            </table>
+          </div>
+          <div class="card">
+            <h2>Logs (last 25)</h2>
+            <pre style="white-space: pre-wrap;">${state.logs.slice(-25).map(l => `[${new Date(l.t).toLocaleTimeString()}] ${l.type}: ${l.message}${l.extra? ' — ' + l.extra : ''}`).join('\n')}</pre>
+          </div>
+          <script>window.onload = () => window.print();<\/script>
+        </body></html>
+      `);
+      w.document.close();
+    });
+
+    // Copy outreach email
+    copyEmailBtn.addEventListener('click', async () => {
+      const role = reqTitle.textContent || 'the role';
+      const body = `Subject: Interview invitation — ${role}
+
+    Hi ${state.candidate.name.split(' ')[0]},
+
+    Thanks for applying for our ${role}. Your background looks like a strong match.
+
+    We'd love to invite you to a 45-minute interview to discuss your experience with ${role.toLowerCase()} skills and projects.
+
+    Please share your availability for the next few days.
+
+    Best,
+    Hiring Team
+    `;
+      try {
+        await navigator.clipboard.writeText(body);
+        showToast('Outreach email copied', 'success');
+        addActivity('Email', 'Prepared outreach email', state.candidate.email);
+      } catch {
+        showToast('Failed to copy email', 'danger');
+      }
+    });
+
+    // Manual email trigger
+    manualEmailBtn.addEventListener('click', () => {
+      showToast('Manual email sent', 'success');
+      addActivity('Email', 'Sent manual email', state.candidate.email);
+    });
+
+    // Add to ATS
+    addAtsBtn.addEventListener('click', () => {
+      showToast('Candidate added to ATS', 'success');
+      addActivity('Sheets', 'Added candidate to ATS', state.candidate.name);
+    });
+
+    // Schedule
+    scheduleBtn.addEventListener('click', () => {
+      showToast('Interview scheduled (placeholder)', 'success');
+      addActivity('INFO', 'Interview scheduled', 'Calendar invite draft created');
+    });
+
+    // Requirements profile presets
+    const profiles = {
+      'Data Engineer': {
+        required: ['Python', 'SQL', 'ETL'],
+        preferred: ['Docker', 'Airflow', 'GCP'],
+        exp: '3+ years',
+        edu: 'BS in CS or equivalent',
+        weights: [50, 30, 20],
+        pass: 80
+      },
+      'Backend Engineer': {
+        required: ['Node.js', 'APIs', 'SQL'],
+        preferred: ['Docker', 'Kubernetes', 'AWS'],
+        exp: '4+ years',
+        edu: 'BS in CS',
+        weights: [55, 30, 15],
+        pass: 82
+      },
+      'ML Engineer': {
+        required: ['Python', 'ML', 'Data Pipelines'],
+        preferred: ['TensorFlow', 'PyTorch', 'GCP'],
+        exp: '3+ years',
+        edu: 'MS in CS/DS preferred',
+        weights: [60, 25, 15],
+        pass: 83
+      }
+    };
+    function chip(label, variant = 'emerald') {
+      const maps = {
+        emerald: { text: 'text-emerald-200', bg: 'rgba(16,185,129,0.12)', border: 'rgba(16,185,129,0.35)' },
+        blue: { text: 'text-blue-200', bg: 'rgba(59,130,246,0.12)', border: 'rgba(59,130,246,0.35)' },
+        red: { text: 'text-red-200', bg: 'rgba(239,68,68,0.12)', border: 'rgba(239,68,68,0.35)' }
+      }[variant];
+      const span = document.createElement('span');
+      span.className = `text-xs rounded-full px-3 py-1 ${maps.text}`;
+      span.style.background = maps.bg;
+      span.style.border = `1px solid ${maps.border}`;
+      span.textContent = label;
+      return span;
+    }
+
+    function setProfile(name) {
+      const p = profiles[name] || profiles['Data Engineer'];
+      reqTitle.textContent = name;
+      reqRequired.innerHTML = '';
+      p.required.forEach(s => reqRequired.appendChild(chip(s, 'emerald')));
+      reqPreferred.innerHTML = '';
+      p.preferred.forEach(s => reqPreferred.appendChild(chip(s, 'blue')));
+      reqExp.textContent = p.exp;
+      reqEdu.textContent = p.edu;
+      wTech.textContent = `${p.weights[0]}%`;
+      wExp.textContent = `${p.weights[1]}%`;
+      wEdu.textContent = `${p.weights[2]}%`;
+      reqPass.textContent = `${p.pass}`;
+      addActivity('INFO', `Profile switched: ${name}`);
+      finalizeCandidate();
+    }
+
+    jobProfileSelect.addEventListener('change', (e) => setProfile(e.target.value));
+    document.addEventListener('DOMContentLoaded', () => setProfile(jobProfileSelect.value));
+
+    // Edit requirements (quick prompts)
+    editReqBtn.addEventListener('click', (e) => {
+      e.preventDefault();
+      const newPass = prompt('Set passing score (0-100):', reqPass.textContent);
+      if (newPass === null) return;
+      const v = parseInt(newPass);
+      if (Number.isNaN(v) || v < 0 || v > 100) {
+        showToast('Invalid passing score', 'danger');
+        return;
+      }
+      reqPass.textContent = `${v}`;
+      addActivity('INFO', 'Passing score updated', `${v}`);
+      finalizeCandidate();
+    });
+
+    // Health dot subtle pulse
+    setInterval(() => {
+      [healthApiDot, healthGeminiDot, healthGmailDot, healthSheetsDot].forEach((el, idx) => {
+        if (!el) return;
+        el.style.boxShadow = idx === 3
+          ? '0 0 0 0 rgba(251,191,36,0.0)'
+          : '0 0 0 0 rgba(16,185,129,0.0)';
+        setTimeout(() => {
+          el.style.boxShadow = idx === 3
+            ? '0 0 0 6px rgba(251,191,36,0.12)'
+            : '0 0 0 6px rgba(16,185,129,0.12)';
+          el.style.transition = 'box-shadow 600ms ease';
+        }, 20);
+        setTimeout(() => {
+          el.style.boxShadow = 'none';
+        }, 620);
+      });
+    }, 3000);
+
+    // Start with ALL filter active
+    document.addEventListener('DOMContentLoaded', () => setActivityFilter('ALL'));
+
+    // Initialize with one activity
+    document.addEventListener('DOMContentLoaded', () => {
+      addActivity('INFO', 'Ready for uploads', 'Press U to upload');
+    });
+
+    // Ensure icons refreshed after dynamic content
+    const observer = new MutationObserver(() => {
+      lucide.createIcons({ attrs: { 'stroke-width': 1.5 } });
+    });
+    observer.observe(activityList, { childList: true });
+
+    // Kick off a subtle default candidate chart state
+    finalizeCandidate();
+  </script>
+</body>
+</html>
