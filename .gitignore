@@ -4,3 +4,7 @@ __pycache__/
 .env
 venv/
 env/
+
+# Google Sheets credentials (IMPORTANT: Never commit this!)
+credentials.json
+*-credentials.json

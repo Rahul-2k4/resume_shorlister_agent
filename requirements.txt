@@ -5,3 +5,5 @@ httpx
 google-generativeai
 PyPDF2
 python-dotenv
+gspread
+oauth2client
