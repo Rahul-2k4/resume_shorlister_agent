@@ -1,0 +1,31 @@
+{
+  "job_title": "Software Developer",
+  "required_skills": [
+    "Python",
+    "FastAPI",
+    "REST API",
+    "SQL",
+    "Git",
+    "Docker",
+    "AWS",
+    "JavaScript",
+    "React",
+    "Node.js"
+  ],
+  "preferred_skills": [
+    "Kubernetes",
+    "CI/CD",
+    "MongoDB",
+    "GraphQL",
+    "TypeScript",
+    "Machine Learning"
+  ],
+  "minimum_experience_years": 2,
+  "required_education": "Bachelor's degree in Computer Science or related field",
+  "scoring_weights": {
+    "technical_skills": 70,
+    "experience": 20,
+    "education": 10
+  },
+  "passing_score": 50
+}
