@@ -4,6 +4,7 @@ import smtplib
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 from fastapi import FastAPI, File, UploadFile, HTTPException
+from fastapi.middleware.cors import CORSMiddleware
 from typing import Dict
 import PyPDF2
 import io
@@ -40,6 +41,16 @@ if not GMAIL_EMAIL or not GMAIL_APP_PASSWORD:
 
 # --- FastAPI App Initialization ---
 app = FastAPI(title="AI-Powered Resume Screening")
+
+# --- CORS Middleware ---
+# This is necessary to allow the frontend to communicate with the backend
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],  # Allows all origins
+    allow_credentials=True,
+    allow_methods=["*"],  # Allows all methods
+    allow_headers=["*"],  # Allows all headers
+)
 
 
 # --- Helper Functions ---

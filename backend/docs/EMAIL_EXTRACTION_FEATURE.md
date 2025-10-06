@@ -6,7 +6,7 @@ The AI agent now **automatically extracts the candidate's email address** from t
 
 ## 🎯 Changes Made
 
-### 1. **Updated Extract Data Prompt** (Lines 130-149)
+### Updated Extract Data Prompt
 
 Added email extraction to the first AI prompt:
 
@@ -21,9 +21,10 @@ Added email extraction to the first AI prompt:
 ```
 
 **New instruction added:**
-> 2. Extract the email address from the resume (e.g., "john.doe@gmail.com", "candidate@example.com").
 
-### 2. **Updated Evaluation Prompt** (Lines 185-202)
+> Extract the email address from the resume (for example, `john.doe@gmail.com`, `candidate@example.com`).
+
+### Updated Evaluation Prompt
 
 Added email to the evaluation output format:
 
@@ -36,7 +37,7 @@ Added email to the evaluation output format:
 }
 ```
 
-### 3. **Smart Email Routing** (Lines 247-255)
+### Smart Email Routing
 
 Updated the email sending logic to intelligently choose the recipient:
 
@@ -50,17 +51,18 @@ else:
 
 ## 📋 How It Works Now
 
-### Workflow:
+### Workflow
 
-1. **Upload Resume** → PDF is processed
-2. **AI Extracts Data** → Including email address from resume
-3. **AI Evaluates Candidate** → Scores against job requirements
+1. **Upload Resume** → PDF is processed.
+2. **AI Extracts Data** → Including email address from resume.
+3. **AI Evaluates Candidate** → Scores against job requirements.
 4. **Smart Email Delivery**:
-   - ✅ **If email found in resume** → Send to **candidate's email**
-   - ❌ **If no email found** → Send to **HR** (rahultripathi2k4151@gmail.com)
+   - ✅ If email found in resume → Send to [candidate's email](mailto:john.doe@gmail.com).
+   - ❌ If no email found → Send to [HR inbox](mailto:rahultripathi2k4151@gmail.com).
 
-### Example Resume Text:
-```
+### Example Resume Text
+
+```text
 John Doe
 john.doe@gmail.com
 Phone: +1 234-567-8900
@@ -69,7 +71,8 @@ Skills: Python, Machine Learning, SQL
 ...
 ```
 
-### Extracted Data:
+### Extracted Data
+
 ```json
 {
   "name": "John Doe",
@@ -80,19 +83,21 @@ Skills: Python, Machine Learning, SQL
 }
 ```
 
-### Email Sent To:
-- **john.doe@gmail.com** ✅ (Candidate receives their evaluation directly!)
+### Email Sent To
+
+- [john.doe@gmail.com](mailto:john.doe@gmail.com) ✅ (Candidate receives their evaluation directly.)
 
 ## 🎯 Benefits
 
-1. **Automated Communication** - Candidates get instant feedback
-2. **No Manual Entry** - Email is extracted automatically from resume
-3. **Fallback to HR** - If no email found, HR gets notified instead
-4. **Professional Experience** - Candidates receive personalized emails with their scores
+1. **Automated Communication** – Candidates get instant feedback.
+2. **No Manual Entry** – Email is extracted automatically from resume.
+3. **Fallback to HR** – If no email found, HR gets notified instead.
+4. **Professional Experience** – Candidates receive personalized emails with their scores.
 
 ## 🚀 Testing
 
 Upload a resume that contains an email address like:
+
 - `candidate@example.com`
 - `john.doe@gmail.com`
 - `firstname.lastname@company.com`
