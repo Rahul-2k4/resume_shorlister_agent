@@ -5,12 +5,15 @@
 [![AWS](https://img.shields.io/badge/AWS-EC2%20%7C%20S3-orange.svg)](https://aws.amazon.com)
 [![Docker](https://img.shields.io/badge/Docker-Ready-blue.svg)](https://docker.com)
 [![License](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+[![Demo](https://img.shields.io/badge/🤗%20Live%20Demo-HuggingFace-yellow.svg)](https://huggingface.co/spaces/Rahul7009/resume-shortlister-demo)
 
 > **An AI-powered resume screening pipeline that reduced HR screening time by 80%, processing 1,000+ documents in a distributed computing environment.**
 
-## Demo
+## Live Demo
 
-![Resume Shortlister Demo](https://via.placeholder.com/800x400?text=Demo+Screenshot+Coming+Soon)
+🚀 **[Try the Live Demo on HuggingFace Spaces](https://huggingface.co/spaces/Rahul7009/resume-shortlister-demo)**
+
+Upload a resume and job description to see the AI-powered screening in action!
 
 ## Problem Statement
 
