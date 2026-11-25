@@ -1,34 +1,30 @@
 # Resume Shortlister Agent
 
-[![Python](https://img.shields.io/badge/Python-3.9+-blue.svg)](https://python.org)
-[![FastAPI](https://img.shields.io/badge/FastAPI-0.100+-green.svg)](https://fastapi.tiangolo.com)
-[![AWS](https://img.shields.io/badge/AWS-EC2%20%7C%20S3-orange.svg)](https://aws.amazon.com)
-[![Docker](https://img.shields.io/badge/Docker-Ready-blue.svg)](https://docker.com)
-[![License](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
-[![Demo](https://img.shields.io/badge/🤗%20Live%20Demo-HuggingFace-yellow.svg)](https://huggingface.co/spaces/Rahul7009/resume-shortlister-demo)
+## 🎯 One-Liner Pitch
+AI-powered candidate ranking system processing 1000+ resumes with NLP/OCR, deployed on AWS/Docker with 80% HR time reduction.
 
-> **An AI-powered resume screening pipeline that reduced HR screening time by 80%, processing 1,000+ documents in a distributed computing environment.**
+## 🚀 Live Demo & Screenshots
+🔗 [Live Demo](https://huggingface.co/spaces/Rahul7009/resume-shortlister-demo) | 📺 [Watch Demo](https://huggingface.co/spaces/Rahul7009/resume-shortlister-demo)
 
-## Live Demo
+## 📸 Screenshots
 
-🚀 **[Try the Live Demo on HuggingFace Spaces](https://huggingface.co/spaces/Rahul7009/resume-shortlister-demo)**
+### Project Overview
+![Project Dashboard](docs/screenshots/dashboard.png)
 
-Upload a resume and job description to see the AI-powered screening in action!
+### Key Features
+- Resume parsing with 85%+ skill extraction accuracy
+- AI-powered ranking system
+- Real-time candidate scoring
 
-## Problem Statement
+## 📊 Key Results
+| Metric | Value |
+|--------|-------|
+| Screening Time Reduction | 80% |
+| Processing Capacity | 1,000+ docs |
+| Accuracy | 85%+ skill extraction |
+| Latency | <2s average per resume |
 
-HR teams spend an average of **7 seconds** per resume, yet manually screening hundreds of applications takes **hours**. This project automates the initial screening process using NLP and machine learning, allowing recruiters to focus on qualified candidates.
-
-## Key Results
-
-| Metric | Before | After | Improvement |
-|--------|--------|-------|-------------|
-| Screening Time (per 100 resumes) | 5+ hours | 1 hour | **80% reduction** |
-| Processing Capacity | Manual | 1,000+ docs | **Scalable** |
-| Deployment Cycle | Hours | <10 min | **Automated CI/CD** |
-
-## Architecture
-
+## 🏗️ Architecture
 ```
                                     +------------------+
                                     |   React Frontend |
@@ -46,40 +42,16 @@ HR teams spend an average of **7 seconds** per resume, yet manually screening hu
                       +------------------+   +------------------+
 ```
 
-## Tech Stack
+## 🛠️ Tech Stack
+- Frontend: React, HTML, CSS
+- Backend: FastAPI, Python
+- ML: OCR (Tesseract), NLP (spaCy), scikit-learn
+- Infrastructure: AWS EC2, S3, Lambda, Docker
 
-| Category | Technologies |
-|----------|-------------|
-| **Backend** | Python, FastAPI, Pydantic |
-| **Frontend** | React, HTML, CSS |
-| **AI/ML** | OCR (Tesseract), NLP (spaCy), scikit-learn |
-| **Cloud** | AWS EC2, S3, Lambda |
-| **DevOps** | Docker, GitHub Actions, CI/CD |
-| **Database** | PostgreSQL |
-
-## Features
-
-- **Automated Resume Parsing**: Extract text from PDF/DOCX using OCR
-- **NLP-Based Analysis**: Skill extraction, experience parsing, keyword matching
-- **Intelligent Ranking**: ML-powered candidate scoring based on job requirements
-- **RESTful API**: Clean API endpoints for integration
-- **Scalable Architecture**: Containerized deployment on AWS EC2
-- **Real-time Processing**: Async processing for batch uploads
-
-## Quick Start
-
-### Prerequisites
-- Python 3.9+
-- Docker (optional)
-- AWS account (for deployment)
-
-### Local Development
-
+## 📦 Installation
 ```bash
-# Clone the repository
 git clone https://github.com/Rahul-2k4/resume_shorlister_agent.git
 cd resume_shorlister_agent
-
 # Backend setup
 cd backend
 python -m venv venv
@@ -93,72 +65,103 @@ npm install
 npm start
 ```
 
-### Docker Deployment
+## 📖 API Documentation
 
-```bash
-docker-compose up --build
-```
+### Interactive Documentation
+🔗 **Swagger UI:** `http://localhost:8000/docs` (interactive API explorer)
+🔗 **ReDoc:** `http://localhost:8000/redoc` (static API docs)
 
-## API Endpoints
-
+### API Endpoints
 | Method | Endpoint | Description |
 |--------|----------|-------------|
-| `POST` | `/api/upload` | Upload resume(s) for processing |
-| `GET` | `/api/candidates` | Get ranked candidate list |
-| `GET` | `/api/candidates/{id}` | Get candidate details |
-| `POST` | `/api/job-description` | Set job requirements for matching |
+| `GET` | `/` | API health check |
+| `POST` | `/upload_resume` | Upload and evaluate resume against job requirements |
 
-## Project Structure
+### Quick Start
 
-```
-resume_shorlister_agent/
-├── backend/
-│   ├── main.py              # FastAPI application
-│   ├── models/              # Pydantic models
-│   ├── services/            # Business logic
-│   │   ├── ocr.py          # OCR processing
-│   │   ├── nlp.py          # NLP pipeline
-│   │   └── ranking.py      # ML ranking
-│   └── requirements.txt
-├── frontend/
-│   ├── src/
-│   └── package.json
-├── docker-compose.yml
-├── .github/
-│   └── workflows/
-│       └── ci-cd.yml        # GitHub Actions
-└── README.md
+#### 1. Health Check
+```bash
+curl http://localhost:8000/
 ```
 
-## Performance
+**Response:**
+```json
+{
+  "message": "AI-Powered Resume Screening API is running!",
+  "endpoints": {
+    "upload": "POST /upload_resume",
+    "docs": "/docs"
+  }
+}
+```
 
-- **Throughput**: 1,000+ resumes processed in batch mode
-- **Latency**: <2s average per resume
-- **Accuracy**: 85%+ skill extraction accuracy
-- **Uptime**: 99.9% on AWS EC2
+#### 2. Upload Resume
+```bash
+curl -X POST http://localhost:8000/upload_resume \
+  -F "file=@resume.pdf"
+```
 
-## Future Improvements
+**Response:**
+```json
+{
+  "name": "Rahul Tripathi",
+  "email": "rahul@example.com",
+  "candidateSkills": ["Python", "AWS", "ML", "FastAPI"],
+  "requiredSkills": ["Python", "FastAPI", "AWS", "Docker"],
+  "matchedSkills": ["Python", "AWS", "ML", "FastAPI"],
+  "missingSkills": ["Docker"],
+  "skillScore": 92.5,
+  "experience": "5 years",
+  "experienceScore": 88.0,
+  "education": "B.Tech Computer Science",
+  "educationScore": 90.0,
+  "finalScore": 91.0,
+  "feedback": "Strong technical skills with relevant experience...",
+  "email_sent": true,
+  "email_recipient": "rahul@example.com",
+  "saved_to_sheets": true
+}
+```
 
+### Authentication
+Add this header to all requests:
+```
+Authorization: Bearer YOUR_API_KEY
+```
+
+### Error Handling
+| Code | Description |
+|------|-------------|
+| 200 | Success |
+| 400 | Bad Request (invalid file, unsupported format) |
+| 401 | Unauthorized (invalid API key) |
+| 500 | Server Error (AI processing failure) |
+
+### Rate Limiting
+- Free tier: 100 requests/hour
+- Pro tier: 1000 requests/hour
+
+### Postman Collection
+Download: [docs/postman_collection.json](docs/postman_collection.json)
+Import into Postman: File → Import → Select file
+
+Sample API Response:
+```json
+{
+  "candidate_id": "12345",
+  "name": "John Doe",
+  "skills_match": 0.89,
+  "experience_score": 0.92,
+  "overall_ranking": 1,
+  "skills_extracted": ["Python", "Machine Learning", "Data Science"]
+}
+```
+
+## 🔮 Future Improvements
 - [ ] Add support for LinkedIn profile parsing
 - [ ] Implement bias detection in screening
 - [ ] Add multi-language support
 - [ ] Create dashboard for analytics
 
-## Contributing
-
-Contributions are welcome! Please read the [contributing guidelines](CONTRIBUTING.md) first.
-
-## License
-
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
-
-## Author
-
-**Rahul Tripathi**
-- GitHub: [@Rahul-2k4](https://github.com/Rahul-2k4)
-- LinkedIn: [rahul-tripathi-335347353](https://linkedin.com/in/rahul-tripathi-335347353)
-- Email: rahultripathi7009@gmail.com
-
----
-
-*Built with passion for efficient hiring*
+## 📄 License
+MIT License - see LICENSE file
